@@ -166,7 +166,10 @@ td input[type=text].nm{width:100%;min-width:130px}
     <label class="row"><input type="checkbox" id="optStartToday"> Events starting today go under "Today" (otherwise under "Ongoing")</label>
     <label class="row"><input type="checkbox" id="optTimedTomorrow"> Also list tomorrow's alliance times under "Tomorrow"</label>
     <label class="row"><input type="checkbox" id="optTrials"> Show Mystic Trial ratios</label>
-    <label class="row"><input type="checkbox" id="optFooter"> Add "(* Event ends today.)" when needed</label>
+    <label class="row"><input type="checkbox" id="optFooter"> Add a note at the end when an event ends that day</label>
+    <div class="row" style="margin-top:6px"><label class="lbl">Ends today</label><input type="text" id="setEndsToday" class="grow"></div>
+    <div class="row" style="margin-top:6px"><label class="lbl">Ends at</label><input type="text" id="setEndsAt" class="grow"></div>
+    <div class="muted">"Ends at" is used for events that end at a set hour: {stars} becomes **, *** … and {time} the hour, e.g. 12 UTC.</div>
     <div class="sub">Normal message</div>
     <div class="row"><label class="lbl">Limit</label><input type="number" id="setGLimit" style="width:90px"><span class="muted">characters (line break = 1; emoji counted as 2 to be safe)</span></div>
     <div class="row" style="margin-top:8px"><label class="lbl">Breaks</label><input type="number" id="setGBreaks" style="width:90px"><span class="muted">line breaks the game keeps (more are removed)</span></div>
@@ -340,7 +343,7 @@ const MOB_GROUP = '💡 Alliance Mobilization: take only tasks you can finish, s
 function defaultGlobal(){
   return {
     title:'📋 Daily Agenda 📋',
-    opts:{leadNewline:true, charLimit:500, startTodayInToday:true, timedTomorrow:true, trials:true, footer:true, groupLimit:512, groupBreaks:10, groupLead:false},
+    opts:{leadNewline:true, charLimit:500, startTodayInToday:true, timedTomorrow:true, trials:true, footer:true, groupLimit:512, groupBreaks:10, groupLead:true, endsToday:'(* Event ends today.)', endsAt:'({stars} Event ends {time}.)'},
     notes:[
       {id:uid(),on:true,text:'🏰 Save up for KvK: Matchmaking starts Saturday.',rule:{type:'event',ev:'mobilization',from:1,to:5}},
       {id:uid(),on:true,text:'🏰 Save up for KvK: Matchmaking starts today.',rule:{type:'event',ev:'kvkmatch',from:1,to:1}},
@@ -548,8 +551,8 @@ function collectDay(p, n){
   const trials = p.opts.trials ? p.trials.filter(t=>(t.days||[]).includes(wday(n))) : [];
   const foot = [];
   if (p.opts.footer){
-    if (star) foot.push('(* Event ends today.)');
-    endHours.forEach((t,i)=>foot.push('(' + '*'.repeat(i+2) + ' Event ends ' + t + '.)'));
+    if (star) foot.push(p.opts.endsToday || '(* Event ends today.)');
+    endHours.forEach((t,i)=>foot.push((p.opts.endsAt || '({stars} Event ends {time}.)').split('{stars}').join('*'.repeat(i+2)).split('{time}').join(t)));
   }
   return {title:p.title, head, today, ongoing, tom, trials, foot};
 }
@@ -592,7 +595,7 @@ function cycleDayInfo(p, n){
 
 // ---------------- state ----------------
 const LS_KEY = 'ks-daily-agenda-v1';
-const SCHEMA = 14;
+const SCHEMA = 15;
 let S = null;   // {schema, alliances:{name:alliance}, kingdoms:{name:kingdom}, active, updatedAt}
 let curDay = todayUtc();
 let outEdited = false;
@@ -633,14 +636,23 @@ function upgradeState(st){
   if (v <= 10) castleV11(st);
   if (v <= 11) brewV12(st);
   if (v <= 12) cesaresV13(st);
-  groupV14(st);
+  if (v <= 13) groupV14(st);
+  footV15(st);
   return true;
+}
+// v14 -> v15: normal message starts with an empty line; editable "ends today" texts
+function footV15(st){
+  const o = st.global.opts;
+  o.groupLead = true;
+  if (o.endsToday === undefined) o.endsToday = '(* Event ends today.)';
+  if (o.endsAt === undefined) o.endsAt = '({stars} Event ends {time}.)';
+  st.schema = SCHEMA;
 }
 // v13 -> v14: group chat message (options, short text for the Mobilization tips)
 function groupV14(st){
   const g = st.global; g.opts = Object.assign({groupLimit:512, groupBreaks:10, groupLead:false}, g.opts||{});
   for (const x of g.notes) if (!x.groupText && /^💡 Tips for Alliance Mobilization/.test(x.text)) x.groupText = MOB_GROUP;
-  st.schema = SCHEMA;
+  st.schema = 14;
 }
 // v12 -> v13: Cesares Fury runs on the same dates in K2116 too (kept per kingdom for now)
 function cesaresV13(st){
@@ -973,7 +985,7 @@ function renderGeneral(){
   $('setAnchor').value=SH().anchor; $('anchorText').textContent = WD[wday(dnum(SH().anchor))] + ' ' + ddm(dnum(SH().anchor));
   $('optLead').checked=g.opts.leadNewline; $('optStartToday').checked=g.opts.startTodayInToday; $('optTimedTomorrow').checked=g.opts.timedTomorrow;
   $('optTrials').checked=g.opts.trials; $('optFooter').checked=g.opts.footer;
-  $('setGLimit').value=g.opts.groupLimit; $('setGBreaks').value=g.opts.groupBreaks; $('optGLead').checked=g.opts.groupLead;
+  $('setEndsToday').value=g.opts.endsToday; $('setEndsAt').value=g.opts.endsAt; $('setGLimit').value=g.opts.groupLimit; $('setGBreaks').value=g.opts.groupBreaks; $('optGLead').checked=g.opts.groupLead;
 }
 // Shared editor pieces for a cycle event: start date, length, period, day number
 function cycleEditors(ev, onDates){
@@ -1208,6 +1220,8 @@ $('setTitle').addEventListener('input', e=>{ GL().title=e.target.value; settings
 $('setLimit').addEventListener('input', e=>{ GL().opts.charLimit=Math.max(0, +e.target.value|0); persist(); renderCount(); });
 $('setGLimit').addEventListener('input', e=>{ GL().opts.groupLimit=Math.max(0, +e.target.value|0); persist(); renderGCount(); });
 $('setGBreaks').addEventListener('input', e=>{ GL().opts.groupBreaks=Math.max(0, +e.target.value|0); persist(); renderGCount(); });
+$('setEndsToday').addEventListener('input', e=>{ GL().opts.endsToday=e.target.value; settingsChanged(); });
+$('setEndsAt').addEventListener('input', e=>{ GL().opts.endsAt=e.target.value; settingsChanged(); });
 $('optGLead').onchange=e=>{ GL().opts.groupLead=e.target.checked; settingsChanged(); };
 // Moving the cycle start moves the "All kingdoms" events; kingdom events stay on their dates.
 function shiftAnchor(newIso){
