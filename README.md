@@ -1,9 +1,9 @@
-# KSAgenda
+# KSDailyAgenda
 
 Daily agenda generator for Kingshot alliances: picks the day's events from the 28-day cycle and builds two ready-to-paste messages
 (the alliance "Group info" message and a compact "Normal message" for group chats).
 
-Live page: https://aenariel.github.io/KSAgenda/
+Live page: https://aenariel.github.io/KSDailyAgenda/
 
 ## Files
 
