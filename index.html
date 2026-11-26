@@ -197,6 +197,7 @@ td input[type=text].nm{width:100%;min-width:130px}
 
   <details class="card">
     <summary>Alliance times</summary>
+    <div class="muted" style="margin-bottom:8px"><b>Set these for your alliance:</b> tick the ones you use and put your own hours and dates (the Bear Trap date is any day your traps run).</div>
     <div class="muted" style="margin-bottom:8px">Shown under "Today", sorted by hour. Either repeat every N days from a date (Bear Traps: every 2), or attach to a day of a game event (Viking Vengeance day 1, Swordland day 7…). On the day before, items with the same group are joined under "Tomorrow", e.g. "Bear Traps (14/22 UTC)".</div>
     <div class="scroll"><table id="timedTable"></table></div>
     <button id="addTimed" style="margin-top:8px">Add time</button>
@@ -241,13 +242,18 @@ td input[type=text].nm{width:100%;min-width:130px}
 
   <details class="card">
     <summary>Backup and reset</summary>
-    <div class="muted" style="margin-bottom:8px">"Show this alliance" puts the alliance and its kingdom here as text, to give to someone. "Show everything" puts all your data here, to move it to another browser or device. Paste either kind and press Import: an alliance is added; "everything" replaces all your data (you are asked to tap twice).</div>
+    <div class="muted" style="margin-bottom:8px">"Download settings" saves a file with your alliances, kingdoms, times, reminders and events, without your day-by-day notes and battles: good for giving to someone. "Download full backup" keeps everything. "Load file" reads either one (it replaces all your data; you are asked to confirm).<br>"Show this alliance" puts the alliance and its kingdom here as text, to give to someone. "Show everything" puts all your data here, to move it to another browser or device. Paste either kind and press Import: an alliance is added; "everything" replaces all your data (you are asked to tap twice).</div>
     <textarea id="backupText" rows="5" spellcheck="false" style="font-family:var(--mono);font-size:12px"></textarea>
     <div class="row" style="margin-top:8px">
       <button id="btnExport">Show this alliance</button>
       <button id="btnExportAll">Show everything</button>
       <button id="btnCopyBackup">Copy</button>
       <button id="btnImport">Import</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="btnDlSettings">Download settings</button>
+      <button id="btnDlAll">Download full backup</button>
+      <label class="row" style="gap:4px"><span class="muted">Load file:</span><input type="file" id="fileImport" accept=".json,application/json"></label>
     </div>
     <div class="row" style="margin-top:8px">
       <button id="btnResetAlliance" class="danger">Reset alliance settings</button>
@@ -333,7 +339,7 @@ const MOB_GROUP = '💡 Alliance Mobilization: take only tasks you can finish, s
 // Shared by every alliance: automatic reminders, reminder buttons, Mystic Trial ratios
 function defaultGlobal(){
   return {
-    title:'🐧 The Daily Penguin 🐧',
+    title:'📋 Daily Agenda 📋',
     opts:{leadNewline:true, charLimit:500, startTodayInToday:true, timedTomorrow:true, trials:true, footer:true, groupLimit:512, groupBreaks:10, groupLead:false},
     notes:[
       {id:uid(),on:true,text:'🏰 Save up for KvK: Matchmaking starts Saturday.',rule:{type:'event',ev:'mobilization',from:1,to:5}},
@@ -374,18 +380,18 @@ function defaultGlobal(){
 // Swordland battle is on Sunday (day 7 of its week), Tri-Alliance on Saturday (day 6); two legions each
 function defaultLegionTimes(){
   return [
-    {id:'sl-l1',on:true,emoji:'🏯',label:'Swordland (Legion 1)',time:'2 UTC',group:'Swordland Showdown',rule:{type:'event',ev:'swordland',from:7,to:7}},
-    {id:'sl-l2',on:true,emoji:'🏯',label:'Swordland (Legion 2)',time:'14 UTC',group:'Swordland Showdown',rule:{type:'event',ev:'swordland',from:7,to:7}},
-    {id:'tri-l1',on:true,emoji:'🏤',label:'Tri-Alliance (Legion 1)',time:'2 UTC',group:'Tri-Alliance Clash',rule:{type:'event',ev:'triclash',from:6,to:6}},
-    {id:'tri-l2',on:true,emoji:'🏤',label:'Tri-Alliance (Legion 2)',time:'19 UTC',group:'Tri-Alliance Clash',rule:{type:'event',ev:'triclash',from:6,to:6}},
+    {id:'sl-l1',on:false,emoji:'🏯',label:'Swordland (Legion 1)',time:'0 UTC',group:'Swordland Showdown',rule:{type:'event',ev:'swordland',from:7,to:7}},
+    {id:'sl-l2',on:false,emoji:'🏯',label:'Swordland (Legion 2)',time:'12 UTC',group:'Swordland Showdown',rule:{type:'event',ev:'swordland',from:7,to:7}},
+    {id:'tri-l1',on:false,emoji:'🏤',label:'Tri-Alliance (Legion 1)',time:'0 UTC',group:'Tri-Alliance Clash',rule:{type:'event',ev:'triclash',from:6,to:6}},
+    {id:'tri-l2',on:false,emoji:'🏤',label:'Tri-Alliance (Legion 2)',time:'12 UTC',group:'Tri-Alliance Clash',rule:{type:'event',ev:'triclash',from:6,to:6}},
   ];
 }
 function defaultAlliance(kingdom){
   return {
     kingdom: kingdom,
     timed:[
-      {id:'trap2',on:true,emoji:'🐻',label:'Trap 2',time:'14 UTC',group:'Bear Traps',rule:{type:'every',date:'2026-11-12',every:2}},
-      {id:'trap1',on:true,emoji:'🐻',label:'Trap 1',time:'22 UTC',group:'Bear Traps',rule:{type:'every',date:'2026-11-12',every:2}},
+      {id:'trap2',on:false,emoji:'🐻',label:'Trap 2',time:'12 UTC',group:'Bear Traps',rule:{type:'every',date:'2026-11-12',every:2}},
+      {id:'trap1',on:false,emoji:'🐻',label:'Trap 1',time:'20 UTC',group:'Bear Traps',rule:{type:'every',date:'2026-11-12',every:2}},
       ...defaultLegionTimes(),
     ],
     battles:[],
@@ -595,10 +601,10 @@ let docRef = null, saveTimer = null, saving = false, pendingSave = false;
 
 function freshState(){
   return {
-    schema:SCHEMA, updatedAt:0, active:'VAR',
+    schema:SCHEMA, updatedAt:0, active:'My alliance',
     shared: defaultShared(),
-    kingdoms:{'K2116':defaultKingdom('young'), 'K1130':defaultKingdom('old')},
-    alliances:{'VAR':defaultAlliance('K2116'), 'TKO':defaultAlliance('K2116'), 'Ffs':defaultAlliance('K1130')},
+    kingdoms:{'My kingdom':defaultKingdom('young')},
+    alliances:{'My alliance':defaultAlliance('My kingdom')},
     global: defaultGlobal(),
   };
 }
@@ -615,7 +621,7 @@ function upgradeState(st){
   const v = st.schema || 1;
   if (v >= SCHEMA) return false;
   if (v < 2){ const days = (st.profiles && st.profiles['Default'] && st.profiles['Default'].days) || {};
-    const f = freshState(); f.alliances['VAR'].days = days; Object.assign(st, f); return true; }
+    const f = freshState(); f.alliances[f.active].days = days; Object.assign(st, f); return true; }
   if (v === 2) for (const k in st.profiles) patchV3(st.profiles[k]);
   if (v <= 3) splitV4(st);
   if (v <= 4) globalizeV5(st);
@@ -1266,6 +1272,27 @@ $('btnResetKingdom').onclick=e=>armed(e.currentTarget, 'Tap again to reset all e
 // backup
 $('btnExport').onclick=()=>{ const a=clone(A()); a.days={}; a.battles=[]; $('backupText').value=JSON.stringify({type:'ks-agenda', alliance:S.active, kingdom:A().kingdom, a, k:K()}); $('backupStatus').textContent='Shown above.'; };
 $('btnCopyBackup').onclick=async()=>{ try{ await navigator.clipboard.writeText($('backupText').value); $('backupStatus').textContent='Copied.'; }catch(e){ $('backupText').select(); $('backupStatus').textContent='Select the text and copy it.'; } };
+function exportState(withDays){
+  const st = clone(S);
+  if (!withDays) for (const a of Object.values(st.alliances)){ a.days = {}; a.battles = []; }
+  return {type:'ks-agenda-all', exported:new Date().toISOString().slice(0,10), state:st};
+}
+function downloadJson(name, obj){
+  try {
+    const url = URL.createObjectURL(new Blob([JSON.stringify(obj, null, 1)], {type:'application/json'}));
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+    $('backupStatus').textContent = 'Downloaded ' + name + '. If nothing was saved, use "Show everything" and copy the text instead.';
+  } catch(e){ $('backupStatus').textContent = 'This browser blocked the download: use "Show everything" and copy the text instead.'; }
+}
+$('btnDlSettings').onclick=()=>downloadJson('ks-agenda-settings-' + diso(todayUtc()) + '.json', exportState(false));
+$('btnDlAll').onclick=()=>downloadJson('ks-agenda-backup-' + diso(todayUtc()) + '.json', exportState(true));
+$('fileImport').onchange=async e=>{
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  try { $('backupText').value = await f.text(); $('backupStatus').textContent = 'File loaded below. Press Import to use it.'; }
+  catch(err){ $('backupStatus').textContent = 'Could not read that file.'; }
+  e.target.value = '';
+};
 $('btnExportAll').onclick=()=>{ $('backupText').value=JSON.stringify({type:'ks-agenda-all', state:S}); $('backupStatus').textContent='All your data is shown above.'; };
 $('btnImport').onclick=e=>{
   let all=null; try{ const o=JSON.parse($('backupText').value); if(o && o.type==='ks-agenda-all' && o.state) all=o.state; }catch(err){}
