@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🛠️ Edit events.json · Kingshot Daily Agenda</title>
+<style>
+/* Same look as KSPlanner and the agenda */
+:root{
+  --bg:#14171c; --card:#20252f; --card2:#1a1e26; --ink:#e6e8eb; --muted:#9aa3ae; --line:#333b49; --line2:#2c323d;
+  --accent:#f5c542; --accent-ink:#1a1a1a; --warn:#ff7b72; --good:#2ecc71; --chip:#2a3140; --chip-line:#3a4352; --field:#0f1216;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:14px 12px 60px}
+h1{font-size:17px;margin:4px 0 4px;color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;margin:10px 0}
+details.card{padding:0 10px}
+details.card[open]{padding-bottom:10px}
+details.card>summary{list-style:none;display:flex;align-items:center;gap:9px;cursor:pointer;padding:10px 0;font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#d3dae3;user-select:none}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::before{content:"";flex:none;width:7px;height:7px;margin:0 2px 0 3px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg);transition:transform .15s}
+details.card[open]>summary::before{transform:rotate(45deg)}
+details.card[open]>summary{border-bottom:1px solid var(--line);margin-bottom:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.grow{flex:1 1 auto}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:var(--chip);border:1px solid var(--chip-line);border-radius:6px;padding:6px 10px;cursor:pointer}
+button:hover{background:#343c4d}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button.danger{color:var(--warn)}
+button.icon{padding:4px 8px;min-width:34px}
+button:disabled{opacity:.45;cursor:default}
+input[type=text],input[type=date],input[type=number],input[type=password],select,textarea{background:var(--field);border:1px solid var(--line2);border-radius:6px;padding:5px 7px}
+input[type=number]{width:60px}
+input[type=checkbox]{accent-color:var(--accent)}
+textarea{width:100%;resize:vertical;font-family:var(--mono);font-size:12px}
+.muted{color:var(--muted);font-size:13px}
+.sub{margin:14px 0 6px;padding-top:10px;border-top:1px solid var(--line2);font-weight:600;font-size:13px;color:#d3dae3}
+summary+.sub,.sub:first-child,.sub.first{border-top:0;padding-top:0;margin-top:0}
+.scroll{overflow-x:auto}
+.scroll>table{min-width:760px}
+table{border-collapse:collapse;width:100%}
+td,th{padding:3px 4px;text-align:left;vertical-align:middle;font-size:13px;white-space:nowrap}
+th{color:var(--muted);font-weight:500;border-bottom:1px solid var(--line2);padding-bottom:5px}
+tr:nth-child(2)>td{padding-top:7px}
+input.emo{width:62px} input.nm{min-width:150px;width:100%} input.tm{width:80px}
+.daybox{display:flex;gap:2px}
+.daybox label{font-size:11px;display:flex;flex-direction:column;align-items:center}
+.ok{color:var(--good)} .bad{color:var(--warn);font-weight:600}
+#log{font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:pre-wrap;max-height:180px;overflow:auto;margin-top:6px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🛠️ Edit events.json</h1>
+  <div class="muted">The game events every copy of the agenda and KSCompanion follow. Change what you need, then publish: the version goes up by one, the site updates in about a minute, open agendas pick it up when reloaded and KSCompanion within 12 hours (or with "Check for updates"). <a href="index.html">Back to the agenda</a>.</div>
+
+  <div class="card">
+    <div class="row"><b id="verText">Loading…</b><span class="grow"></span><span class="muted" id="dirty"></span></div>
+    <div class="muted" id="loadStatus"></div>
+  </div>
+
+  <details class="card" open>
+    <summary>Fixed events (all kingdoms)</summary>
+    <div class="row" style="margin-bottom:8px"><span class="muted">Cycle start (a Monday)</span><input type="date" id="anchor"><span class="muted" id="anchorDay"></span></div>
+    <div class="muted" style="margin-bottom:6px">"Starts" is the next (or current) run, counted from today; change it to the day you see the event start in the game. "Show on days": e.g. 1,3 (empty = every day). "Last day": mark the last day. "Highlight": stands out in KSCompanion (KvK, Castle Battle).</div>
+    <div class="scroll"><table id="cycleTable"></table></div>
+    <button id="addCycle" style="margin-top:8px">+ Add event</button>
+  </details>
+
+  <details class="card">
+    <summary>One-off events (all kingdoms)</summary>
+    <div class="scroll"><table id="specialTable"></table></div>
+    <button id="addSpecial" style="margin-top:8px">+ Add event</button>
+  </details>
+
+  <details class="card">
+    <summary>Mystic Trials</summary>
+    <div class="muted" style="margin-bottom:6px">Ratio: Infantry/Cavalry/Archers, e.g. 50/20/30.</div>
+    <div class="scroll"><table id="trialTable"></table></div>
+    <button id="addTrial" style="margin-top:8px">+ Add room</button>
+  </details>
+
+  <details class="card">
+    <summary>Hours and legions</summary>
+    <div class="sub" style="margin-top:0">Possible hours (UTC)</div>
+    <div class="row"><span class="muted" style="width:170px">Eternity's Reach</span><input type="text" id="slotsEternity" class="grow" placeholder="2, 5, 11, 14, 16, 18, 21"></div>
+    <div class="row" style="margin-top:6px"><span class="muted" style="width:170px">Sanctuary &amp; Fortress</span><input type="text" id="slotsBattles" class="grow" placeholder="3, 9, 13, 14, 17"></div>
+    <div class="sub">Legion events</div>
+    <div class="muted" style="margin-bottom:6px">Days of the event week: registration from–to (KSCompanion asks which legion then) and the battle day.</div>
+    <div class="scroll"><table id="legionTable"></table></div>
+  </details>
+
+  <details class="card" open>
+    <summary>Publish</summary>
+    <div class="muted" style="margin-bottom:8px">Publishing needs a GitHub fine-grained token with access to <b>aenariel/KSDailyAgenda</b> only and the permission <b>Contents: Read and write</b> (github.com → Settings → Developer settings → Fine-grained tokens). It is only sent to GitHub.</div>
+    <div class="row">
+      <input type="password" id="token" class="grow" placeholder="github_pat_…" autocomplete="off">
+      <label class="row" style="gap:4px"><input type="checkbox" id="remember"> Remember on this device</label>
+      <button id="checkToken">Check</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="publish" class="primary">Publish</button>
+      <button id="download">Download events.json</button>
+      <button id="copy">Copy JSON</button>
+      <button id="forget" class="danger">Forget token</button>
+    </div>
+    <div id="pubStatus" class="muted" style="margin-top:6px"></div>
+    <div class="muted" style="margin-top:6px">Without a token: download the file, then on GitHub open events.json → ✏️ (or "Add file → Upload files") and commit it.</div>
+  </details>
+
+  <details class="card">
+    <summary>Raw JSON</summary>
+    <div class="muted" style="margin-bottom:6px">The file as it will be published. You can also edit it here and press Apply.</div>
+    <textarea id="raw" rows="14" spellcheck="false"></textarea>
+    <div class="row" style="margin-top:6px"><button id="applyRaw">Apply</button><span class="muted" id="rawStatus"></span></div>
+  </details>
+
+  <details class="card">
+    <summary>Log</summary>
+    <div id="log"></div>
+  </details>
+</div>
+
+<script>
+const REPO = 'aenariel/KSDailyAgenda', BRANCH = 'main', PATH = 'events.json', TOKEN_KEY = 'ks-agenda-gh-token';
+const DAY = 86400000, WD = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const $ = id => document.getElementById(id);
+function dnum(iso){ const [y,m,d]=iso.split('-').map(Number); return Math.floor(Date.UTC(y,m-1,d)/DAY); }
+function diso(n){ return new Date(n*DAY).toISOString().slice(0,10); }
+function ddm(n){ const s=diso(n); return s.slice(8,10)+'/'+s.slice(5,7); }
+function wday(n){ return ((n+3)%7+7)%7; }
+function mod(a,b){ return ((a%b)+b)%b; }
+function today(){ return Math.floor(Date.now()/DAY); }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function log(msg){ const t = new Date().toISOString().slice(11,19); $('log').textContent += t + '  ' + msg + '\n'; $('log').scrollTop = 1e9; console.log('[edit] ' + msg); }
+
+let F = null;          // the file being edited
+let loadedVersion = 0; // version of the file when the page loaded it
+let savedText = '';    // to show unsaved changes
+
+function text(){ return JSON.stringify(F, null, 1) + '\n'; }
+function changed(){ $('raw').value = text(); $('dirty').textContent = $('raw').value === savedText ? '' : 'unpublished changes'; }
+
+// ---- inputs ----
+function inp(type, val, cls, on, ev){ const e=document.createElement('input'); e.type=type; if(type==='checkbox') e.checked=!!val; else e.value=val??''; if(cls) e.className=cls;
+  e.addEventListener(ev || (type==='checkbox'?'change':'input'), ()=>{ on(type==='checkbox'?e.checked:type==='number'?+e.value:e.value); changed(); }); return e; }
+function btn(t, on, cls){ const b=document.createElement('button'); b.textContent=t; if(cls) b.className=cls; b.onclick=on; return b; }
+function td(...k){ const c=document.createElement('td'); c.append(...k); return c; }
+function th(...n){ const r=document.createElement('tr'); for(const x of n){ const h=document.createElement('th'); h.textContent=x; r.appendChild(h); } return r; }
+function nums(s){ return String(s).split(/[ ,;\/]+/).map(x=>x.trim()).filter(x=>x!=='').map(Number).filter(x=>Number.isFinite(x)); }
+function daybox(days, on){ const b=document.createElement('span'); b.className='daybox';
+  WD.forEach((w,i)=>{ const l=document.createElement('label'); l.append(inp('checkbox', days.includes(i), '', v=>{ const d=days.filter(x=>x!==i); if(v) d.push(i); d.sort(); on(d); }), document.createTextNode(w)); b.appendChild(l); }); return b; }
+
+// ---- fixed events ----
+function nearest(ev){
+  const a = dnum(F.shared.anchor), n = today(), every = Math.max(1, ev.every|0), len = Math.max(1, ev.len|0);
+  const off = mod(n - a - (ev.start|0), every);
+  const s = off < len ? n - off : n + (every - off);
+  return {start:s, end:s+len-1};
+}
+function renderCycle(){
+  const tb=$('cycleTable'); tb.innerHTML='';
+  tb.appendChild(th('On','Icon','Event','id','Starts','Days','Every','Day #','max','Starts at','Ends at','Show on days','Last day','Highlight',''));
+  for (const ev of F.shared.cycle){
+    const r=document.createElement('tr');
+    const dates=document.createElement('span'); dates.className='muted';
+    const upd=()=>{ const h=nearest(ev); dates.textContent=' '+ddm(h.start)+'–'+ddm(h.end); };
+    const start=inp('date', diso(nearest(ev).start), '', v=>{ if(!v) return; ev.start=mod(dnum(v)-dnum(F.shared.anchor), Math.max(1,ev.every|0)); upd(); log(ev.id+': starts '+v+' (start '+ev.start+')'); }, 'change');
+    const sel=document.createElement('select'); for (const n of [7,14,28]){ const o=document.createElement('option'); o.value=n; o.textContent=n+' days'; if((ev.every|0)===n) o.selected=true; sel.appendChild(o); }
+    if (![7,14,28].includes(ev.every|0)){ const o=document.createElement('option'); o.value=ev.every; o.textContent=ev.every+' days'; o.selected=true; sel.appendChild(o); }
+    sel.onchange=()=>{ const s0=nearest(ev).start; ev.every=+sel.value; ev.start=mod(s0-dnum(F.shared.anchor), ev.every); log(ev.id+': every '+ev.every+' days'); changed(); renderCycle(); };
+    r.append(
+      td(inp('checkbox', ev.on, '', v=>ev.on=v)),
+      td(inp('text', ev.emoji, 'emo', v=>ev.emoji=v)),
+      td(inp('text', ev.name, 'nm', v=>ev.name=v)),
+      td(inp('text', ev.id, 'emo', v=>ev.id=v.trim())),
+      td(start, dates),
+      td(inp('number', ev.len, '', v=>{ ev.len=Math.max(1,v|0); upd(); })),
+      td(sel),
+      td(inp('checkbox', ev.showDay, '', v=>ev.showDay=v)),
+      td(inp('number', ev.maxDay||'', '', v=>ev.maxDay=Math.max(0,v|0))),
+      td(inp('text', ev.startTime||'', 'tm', v=>ev.startTime=v.trim())),
+      td(inp('text', ev.endTime||'', 'tm', v=>ev.endTime=v.trim())),
+      td(inp('text', (ev.days||[]).join(','), 'emo', v=>ev.days=nums(v).filter(x=>x>0))),
+      td(inp('checkbox', ev.lastDay!==false, '', v=>ev.lastDay=v)),
+      td(inp('checkbox', !!ev.highlight, '', v=>ev.highlight=v)),
+      td(btn('×', ()=>{ if(!confirm('Remove '+ev.name+'?')) return; F.shared.cycle=F.shared.cycle.filter(x=>x!==ev); log('removed '+ev.id); changed(); renderCycle(); renderLegions(); }, 'danger icon')),
+    );
+    upd(); tb.appendChild(r);
+  }
+}
+// ---- one-off events ----
+function renderSpecial(){
+  const tb=$('specialTable'); tb.innerHTML='';
+  tb.appendChild(th('On','Icon','Event','From','To','Day #',''));
+  for (const sp of F.shared.special){
+    const r=document.createElement('tr');
+    r.append(td(inp('checkbox', sp.on, '', v=>sp.on=v)), td(inp('text', sp.emoji, 'emo', v=>sp.emoji=v)), td(inp('text', sp.name, 'nm', v=>sp.name=v)),
+      td(inp('date', sp.from, '', v=>sp.from=v)), td(inp('date', sp.to, '', v=>sp.to=v)), td(inp('checkbox', sp.showDay, '', v=>sp.showDay=v)),
+      td(btn('×', ()=>{ F.shared.special=F.shared.special.filter(x=>x!==sp); log('removed one-off '+sp.name); changed(); renderSpecial(); }, 'danger icon')));
+    tb.appendChild(r);
+  }
+  if (!F.shared.special.length){ const r=document.createElement('tr'); const c=document.createElement('td'); c.colSpan=7; c.className='muted'; c.textContent='None.'; r.appendChild(c); tb.appendChild(r); }
+}
+// ---- trials ----
+function renderTrials(){
+  const tb=$('trialTable'); tb.innerHTML='';
+  tb.appendChild(th('Icon','Room','Ratio','Days',''));
+  F.shared.trials = F.shared.trials || [];
+  for (const t of F.shared.trials){
+    const r=document.createElement('tr');
+    r.append(td(inp('text', t.emoji, 'emo', v=>t.emoji=v)), td(inp('text', t.name, 'nm', v=>t.name=v)), td(inp('text', t.ratio, 'tm', v=>t.ratio=v.trim())),
+      td(daybox(t.days||[], d=>t.days=d)),
+      td(btn('×', ()=>{ F.shared.trials=F.shared.trials.filter(x=>x!==t); log('removed trial '+t.name); changed(); renderTrials(); }, 'danger icon')));
+    tb.appendChild(r);
+  }
+}
+// ---- hours and legions ----
+function renderSlots(){
+  F.shared.slots = F.shared.slots || {eternity:[], battles:[]};
+  $('slotsEternity').value = (F.shared.slots.eternity||[]).join(', ');
+  $('slotsBattles').value = (F.shared.slots.battles||[]).join(', ');
+}
+function renderLegions(){
+  const tb=$('legionTable'); tb.innerHTML='';
+  tb.appendChild(th('Group','Event','Registration from','to','Battle day'));
+  F.shared.legions = F.shared.legions || [];
+  for (const L of F.shared.legions){
+    const r=document.createElement('tr');
+    const sel=document.createElement('select');
+    for (const ev of F.shared.cycle){ const o=document.createElement('option'); o.value=ev.id; o.textContent=ev.name+' ('+ev.id+')'; if(ev.id===L.ev) o.selected=true; sel.appendChild(o); }
+    sel.onchange=()=>{ L.ev=sel.value; changed(); };
+    r.append(td(document.createTextNode(L.group)), td(sel),
+      td(inp('number', L.regFrom, '', v=>L.regFrom=Math.max(1,v|0))), td(inp('number', L.regTo, '', v=>L.regTo=Math.max(1,v|0))), td(inp('number', L.battleDay, '', v=>L.battleDay=Math.max(1,v|0))));
+    tb.appendChild(r);
+  }
+}
+function renderAll(){
+  $('anchor').value = F.shared.anchor; $('anchorDay').textContent = WD[wday(dnum(F.shared.anchor))];
+  renderCycle(); renderSpecial(); renderTrials(); renderSlots(); renderLegions(); changed();
+  $('verText').textContent = 'Published version: ' + loadedVersion + (F.updated ? ' (' + F.updated + ')' : '') + ' · next: ' + (loadedVersion + 1);
+}
+
+$('anchor').addEventListener('change', e=>{
+  if (!e.target.value) return;
+  // keep every event on its dates: shift each start by the change
+  const delta = dnum(e.target.value) - dnum(F.shared.anchor);
+  F.shared.anchor = e.target.value;
+  for (const ev of F.shared.cycle) ev.start = mod((ev.start|0) - delta, Math.max(1, ev.every|0));
+  log('cycle start ' + e.target.value + ' (' + delta + ' days); event dates kept'); renderAll();
+});
+$('slotsEternity').addEventListener('input', e=>{ F.shared.slots.eternity = nums(e.target.value).filter(h=>h>=0&&h<24); changed(); });
+$('slotsBattles').addEventListener('input', e=>{ F.shared.slots.battles = nums(e.target.value).filter(h=>h>=0&&h<24); changed(); });
+$('addCycle').onclick=()=>{ F.shared.cycle.push({id:'ev'+uid().slice(0,4), emoji:'', name:'New event', start:mod(today()-dnum(F.shared.anchor),28), len:1, every:28, on:true, showDay:false, maxDay:0, endTime:'', startTime:'', days:[], lastDay:true, highlight:false}); log('added an event'); changed(); renderCycle(); };
+$('addSpecial').onclick=()=>{ F.shared.special.push({id:uid(), on:true, showDay:false, emoji:'', name:'New event', from:diso(today()), to:diso(today()+6)}); log('added a one-off event'); changed(); renderSpecial(); };
+$('addTrial').onclick=()=>{ F.shared.trials.push({emoji:'', name:'Room', ratio:'50/20/30', days:[]}); log('added a trial'); changed(); renderTrials(); };
+$('applyRaw').onclick=()=>{
+  try { const o = JSON.parse($('raw').value); if (!o.shared || !Array.isArray(o.shared.cycle)) throw new Error('no shared.cycle'); F = o; renderAll(); $('rawStatus').textContent = 'Applied.'; log('raw JSON applied'); }
+  catch(e){ $('rawStatus').textContent = 'Not valid: ' + e.message; }
+};
+
+// ---- GitHub ----
+function utf8ToB64(s){ const b = new TextEncoder().encode(s); let bin=''; for (let i=0; i<b.length; i+=0x8000) bin += String.fromCharCode.apply(null, b.subarray(i, i+0x8000)); return btoa(bin); }
+function b64ToUtf8(s){ const bin = atob(s.replace(/\s/g,'')); const b = new Uint8Array(bin.length); for (let i=0;i<bin.length;i++) b[i]=bin.charCodeAt(i); return new TextDecoder().decode(b); }
+function token(){ return $('token').value.trim(); }
+async function gh(method, url, body){
+  log(method + ' ' + url.replace('https://api.github.com',''));
+  const t0 = performance.now();
+  const r = await fetch('https://api.github.com' + url, {method, headers:{'Authorization':'Bearer '+token(), 'Accept':'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28'}, body: body ? JSON.stringify(body) : undefined, cache:'no-store'});
+  const j = await r.json().catch(()=>({}));
+  log('  -> ' + r.status + ' in ' + Math.round(performance.now()-t0) + ' ms' + (j.message ? ' (' + j.message + ')' : ''));
+  if (!r.ok) throw new Error(r.status + ' ' + (j.message || r.statusText));
+  return j;
+}
+function status(t, cls){ $('pubStatus').textContent = t; $('pubStatus').className = cls || 'muted'; }
+function keepToken(){ try { if ($('remember').checked && token()) localStorage.setItem(TOKEN_KEY, token()); else localStorage.removeItem(TOKEN_KEY); } catch(e){} }
+$('remember').onchange = keepToken;
+$('token').addEventListener('change', keepToken);
+$('forget').onclick=()=>{ $('token').value=''; $('remember').checked=false; try { localStorage.removeItem(TOKEN_KEY); } catch(e){} status('Token removed from this page and this device.'); log('token forgotten'); };
+$('checkToken').onclick=async()=>{
+  if (!token()) return status('Paste a token first.', 'bad');
+  try { const j = await gh('GET', '/repos/' + REPO); const push = j.permissions && j.permissions.push;
+    status(push ? 'Token works: it can publish to ' + REPO + '.' : 'Token can read ' + REPO + ' but not write: give it "Contents: Read and write".', push ? 'ok' : 'bad'); }
+  catch(e){ status('Token refused: ' + e.message, 'bad'); }
+};
+let armedAt = 0;
+$('publish').onclick=async()=>{
+  if (!token()) return status('Paste a token first (or download the file).', 'bad');
+  if (Date.now() - armedAt > 4000){ armedAt = Date.now(); status('Tap Publish again to publish version ' + (loadedVersion + 1) + '.'); return; }
+  armedAt = 0;
+  const b = $('publish'); b.disabled = true;
+  try {
+    status('Reading the published file…');
+    const cur = await gh('GET', '/repos/' + REPO + '/contents/' + PATH + '?ref=' + BRANCH);
+    const remote = JSON.parse(b64ToUtf8(cur.content));
+    log('published version on GitHub: ' + remote.version + ', loaded here: ' + loadedVersion);
+    if ((remote.version|0) > loadedVersion){ status('Version ' + remote.version + ' was published after this page loaded it. Reload the page (your changes here would overwrite it).', 'bad'); return; }
+    F.version = loadedVersion + 1; F.updated = diso(today());
+    const body = text();
+    status('Publishing version ' + F.version + '…');
+    const res = await gh('PUT', '/repos/' + REPO + '/contents/' + PATH, {message:'events.json v' + F.version + ' (edited in edit.html)', content:utf8ToB64(body), sha:cur.sha, branch:BRANCH});
+    loadedVersion = F.version; savedText = body; renderAll();
+    status('Published version ' + F.version + ' (commit ' + String(res.commit && res.commit.sha || '').slice(0,7) + '). The site updates in about a minute.', 'ok');
+  } catch(e){ status('Not published: ' + e.message, 'bad'); }
+  finally { b.disabled = false; }
+};
+$('download').onclick=()=>{
+  const f = JSON.parse(JSON.stringify(F)); f.version = loadedVersion + 1; f.updated = diso(today());
+  const url = URL.createObjectURL(new Blob([JSON.stringify(f, null, 1) + '\n'], {type:'application/json'}));
+  const a = document.createElement('a'); a.href = url; a.download = 'events.json'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  status('Downloaded events.json as version ' + f.version + '.'); log('downloaded version ' + f.version);
+};
+$('copy').onclick=async()=>{
+  const f = JSON.parse(JSON.stringify(F)); f.version = loadedVersion + 1; f.updated = diso(today());
+  try { await navigator.clipboard.writeText(JSON.stringify(f, null, 1) + '\n'); status('Copied as version ' + f.version + '.'); } catch(e){ status('Copy blocked: use the Raw JSON box.', 'bad'); }
+};
+
+// ---- boot ----
+(async function(){
+  try { const t = localStorage.getItem(TOKEN_KEY); if (t){ $('token').value = t; $('remember').checked = true; log('token remembered on this device'); } } catch(e){}
+  try {
+    log('loading ' + PATH);
+    const r = await fetch(PATH + '?t=' + Date.now(), {cache:'no-store'});
+    if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+    F = await r.json(); loadedVersion = F.version|0; savedText = JSON.stringify(F, null, 1) + '\n';
+    log('loaded version ' + loadedVersion + ': ' + F.shared.cycle.length + ' fixed events, ' + (F.shared.special||[]).length + ' one-off, ' + (F.shared.trials||[]).length + ' trials');
+    $('loadStatus').textContent = 'Loaded from this site. Times are UTC; game days are UTC days.';
+    renderAll();
+  } catch(e){ $('verText').textContent = 'Could not load events.json'; $('loadStatus').textContent = e.message; log('load failed: ' + e.message); }
+})();
+</script>
+</body>
+</html>

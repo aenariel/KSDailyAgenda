@@ -5,63 +5,83 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>🗓️ Kingshot Daily Agenda</title>
 <style>
+/* Same look as KSPlanner: dark blue-grey panels, yellow accent, cards with a turning arrow */
 :root{
-  --bg:#f5f1e8; --card:#fffdf8; --ink:#2b2418; --muted:#7a6e5c; --line:#e3dac8;
-  --accent:#4f7a3a; --accent-ink:#fff; --warn:#b3412a; --chip:#efe7d6; --chip-on:#4f7a3a;
+  --bg:#14171c; --card:#20252f; --card2:#1a1e26; --ink:#e6e8eb; --muted:#9aa3ae; --line:#333b49; --line2:#2c323d;
+  --accent:#f5c542; --accent-ink:#1a1a1a; --warn:#ff7b72; --good:#2ecc71; --chip:#2a3140; --chip-line:#3a4352; --field:#0f1216;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
-@media (prefers-color-scheme: dark){
-  :root{ --bg:#17150f; --card:#221f17; --ink:#efe8d8; --muted:#a69b86; --line:#3a3427;
-    --accent:#7fae5f; --accent-ink:#10140c; --warn:#ef8a6c; --chip:#2e2a1f; --chip-on:#7fae5f; }
-}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 .wrap{max-width:860px;margin:0 auto;padding:14px 12px 60px}
-h1{font-size:20px;margin:4px 0 12px}
-h2{font-size:15px;margin:0 0 10px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+h1{font-size:17px;margin:4px 0 12px;color:var(--accent)}
+h2{font-size:13px;margin:0 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;margin:10px 0}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .grow{flex:1 1 auto}
 .lbl{color:var(--muted);font-size:13px;width:64px}
 button,select,input,textarea{font:inherit;color:inherit}
-button{background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button{background:var(--chip);border:1px solid var(--chip-line);border-radius:6px;padding:6px 10px;cursor:pointer}
+button:hover{background:#343c4d}
 button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
 button.danger{color:var(--warn)}
-button:disabled{opacity:.5;cursor:default}
-input[type=text],input[type=date],input[type=number],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+button.icon{padding:4px 8px;min-width:34px}
+button:disabled{opacity:.45;cursor:default}
+input[type=text],input[type=date],input[type=number],select,textarea{background:var(--field);border:1px solid var(--line2);border-radius:6px;padding:5px 7px}
 textarea{width:100%;resize:vertical}
 input[type=number]{width:64px}
+input[type=checkbox]{accent-color:var(--accent)}
 .muted{color:var(--muted);font-size:13px}
-.out{font-family:var(--mono);font-size:14px;min-height:320px;white-space:pre}
+.out{font-family:var(--mono);font-size:13.5px;min-height:320px;white-space:pre}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer;user-select:none}
-.chip.on{background:var(--chip-on);color:var(--accent-ink);border-color:var(--chip-on)}
-.chip.sq{border-radius:8px;min-width:40px;text-align:center}
-details.card>summary{cursor:pointer;font-weight:600;list-style:none}
-details.card>summary::before{content:"▸ ";color:var(--muted)}
-details.card[open]>summary::before{content:"▾ "}
-details.card[open]>summary{margin-bottom:10px}
-.kgroup{border-left:3px solid var(--accent);padding-left:10px;margin:18px 0 8px;font-weight:600}
+.chip{background:var(--chip);border:1px solid var(--chip-line);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer;user-select:none}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.chip.sq{border-radius:6px;min-width:40px;text-align:center}
+details.card{padding:0 10px}
+details.card[open]{padding-bottom:10px}
+details.card>summary{list-style:none;display:flex;align-items:center;gap:9px;cursor:pointer;padding:10px 0;font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#d3dae3;user-select:none}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::before{content:"";flex:none;width:7px;height:7px;margin:0 2px 0 3px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg);transition:transform .15s}
+details.card[open]>summary::before{transform:rotate(45deg)}
+details.card>summary:hover{color:#fff}
+details.card[open]>summary{border-bottom:1px solid var(--line);margin-bottom:8px}
+details.card details.card{background:var(--card2);border-radius:6px;margin:8px 0 0}
+details.item>summary{text-transform:none;letter-spacing:0;font-size:14px}
+details.item>summary .muted{font-weight:400;margin-left:auto;text-align:right}
+.cardhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cardhead h2{margin:0;color:#d3dae3;font-size:12.5px}
+.kgroup{color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin:22px 2px 4px}
 table{border-collapse:collapse;width:100%}
-td,th{border-bottom:1px solid var(--line);padding:4px 4px;text-align:left;vertical-align:middle;font-size:13px}
-th{color:var(--muted);font-weight:600}
+td,th{padding:3px 4px;text-align:left;vertical-align:middle;font-size:13px}
+th{color:var(--muted);font-weight:500;border-bottom:1px solid var(--line2);padding-bottom:5px}
+tr:nth-child(2)>td{padding-top:7px}
 td input[type=text].emo{width:62px}
 td input[type=text].nm{width:100%;min-width:130px}
 .scroll{overflow-x:auto}
+.scroll>table{min-width:760px}
+.scroll td{white-space:nowrap}
+.scroll td .ruleBox{flex-wrap:nowrap;white-space:nowrap}
+.fixrow{display:flex;gap:10px;align-items:center}
+.fixrow>.grow{min-width:0}
+.block{background:var(--card2);border-radius:6px;padding:8px;margin:8px 0}
+.block .ruleBox input[type=number]{width:46px}
+.block .ruleBox select{max-width:170px}
 .evlist label{display:flex;gap:6px;align-items:center;padding:2px 0}
 .tag{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:0 5px;color:var(--muted)}
 .status{font-size:12px;color:var(--muted)}
-.ok{color:var(--accent)}
+.ok{color:var(--good)}
 .bad{color:var(--warn);font-weight:600}
-.sub{margin:14px 0 6px;font-weight:600;font-size:14px}
+.sub{margin:14px 0 6px;padding-top:10px;border-top:1px solid var(--line2);font-weight:600;font-size:13px;color:#d3dae3}
+summary+.sub,.sub:first-child,.sub.first{border-top:0;padding-top:0;margin-top:0}
 .ruleBox{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 .ruleBox select{max-width:190px}
 .daybox{display:flex;gap:2px}
 .daybox label{font-size:11px;display:flex;flex-direction:column;align-items:center}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.seg button{border:0;border-radius:0}
-.seg button.on{background:var(--chip-on);color:var(--accent-ink)}
 .battle{display:flex;gap:8px;align-items:center;padding:3px 0}
+.fields{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;margin-bottom:8px}
+.fields>span{color:var(--muted);font-size:13px}
+.err{color:var(--warn);font-size:13px}
+a{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -71,26 +91,9 @@ td input[type=text].nm{width:100%;min-width:130px}
   <div class="card">
     <div class="row">
       <span class="lbl">Alliance</span>
-      <select id="allianceSel" class="grow"></select>
-      <button id="btnNewAlliance" title="Copy this alliance's settings into a new alliance">New</button>
-      <button id="btnRenameAlliance">Rename</button>
-      <button id="btnDeleteAlliance" class="danger">Delete</button>
+      <select id="allianceSel" class="grow" title="The alliance this message is for"></select>
     </div>
-    <div class="row" style="margin-top:8px">
-      <span class="lbl">Kingdom</span>
-      <select id="kingdomSel" class="grow"></select>
-      <label class="row" style="gap:4px" title="Generation 4 and later: Champion's Way instead of Desert Trial"><input type="checkbox" id="optGen4"> Gen 4+</label>
-      <button id="btnNewKingdom" title="Copy this kingdom's events into a new kingdom">New</button>
-      <button id="btnRenameKingdom">Rename</button>
-      <button id="btnDeleteKingdom" class="danger">Delete</button>
-    </div>
-    <div class="row" id="nameRow" style="margin-top:8px;display:none">
-      <input type="text" id="nameInput" class="grow">
-      <button id="nameOk" class="primary">OK</button>
-      <button id="nameCancel">Cancel</button>
-    </div>
-    <div class="muted" style="margin-top:6px">Alliances in the same kingdom share its game events: fix an event once and every alliance there gets it.</div>
-    <div class="status" id="syncStatus" style="margin-top:4px">Saved in this browser.</div>
+    <div class="status" id="syncStatus" style="margin-top:6px">Saved in this browser.</div>
   </div>
 
   <div class="card">
@@ -104,8 +107,8 @@ td input[type=text].nm{width:100%;min-width:130px}
   </div>
 
   <div class="card">
-    <div class="row" style="margin-bottom:8px">
-      <h2 class="grow" style="margin:0">Group info</h2>
+    <div class="cardhead">
+      <h2 class="grow">Group info</h2>
       <span class="status" id="editedFlag"></span>
       <button id="resetOut" style="display:none">Undo my edits</button>
       <button id="copyBtn" class="primary">Copy</button>
@@ -115,8 +118,8 @@ td input[type=text].nm{width:100%;min-width:130px}
   </div>
 
   <div class="card">
-    <div class="row" style="margin-bottom:8px">
-      <h2 class="grow" style="margin:0">Normal message</h2>
+    <div class="cardhead">
+      <h2 class="grow">Normal message</h2>
       <span class="status" id="gEditedFlag"></span>
       <button id="gResetOut" style="display:none">Undo my edits</button>
       <button id="gCopyBtn" class="primary">Copy</button>
@@ -125,19 +128,18 @@ td input[type=text].nm{width:100%;min-width:130px}
     <div id="gCount" class="muted"></div>
   </div>
 
-  <div class="card">
-    <h2>For this day</h2>
+  <details class="card" data-key="day" open>
+    <summary>For this day</summary>
 
-    <div class="sub" style="margin-top:0">Sanctuary &amp; Fortress battles</div>
-    <div class="row" style="margin-bottom:8px">
-      <span class="seg"><button id="segToday">Today</button><button id="segTomorrow">Tomorrow</button></span>
-      <span class="muted" id="battleHint"></span>
+    <div id="battleBox">
+      <div class="sub first">Sanctuary &amp; Fortress battles</div>
+      <div class="muted" id="battleHint" style="margin-bottom:6px"></div>
+      <div class="muted">Sanctuary</div>
+      <div class="chips" id="chipsS" style="margin:4px 0 8px"></div>
+      <div class="muted">Fortress</div>
+      <div class="chips" id="chipsF" style="margin:4px 0 8px"></div>
+      <div id="battleList"></div>
     </div>
-    <div class="muted">Sanctuary</div>
-    <div class="chips" id="chipsS" style="margin:4px 0 8px"></div>
-    <div class="muted">Fortress</div>
-    <div class="chips" id="chipsF" style="margin:4px 0 8px"></div>
-    <div id="battleList"></div>
 
     <div class="sub">Reminders at the top</div>
     <div class="chips" id="presetChips"></div>
@@ -154,11 +156,40 @@ td input[type=text].nm{width:100%;min-width:130px}
     <textarea id="dayOngoing" rows="2" placeholder="- ✨ Fantasy Theater"></textarea>
     <div class="sub">Extra lines under "Tomorrow"</div>
     <textarea id="dayTomorrow" rows="2" placeholder="- 🏯 Swordland Showdown (Registration)"></textarea>
-  </div>
+  </details>
+
+  <div class="kgroup">Alliances and kingdoms</div>
+
+  <details class="card" data-key="alliances">
+    <summary>Alliances</summary>
+    <div class="muted" style="margin-bottom:4px">Each alliance has its own times (Bear Traps, legions…) and belongs to a kingdom, which gives the event dates. Open one to edit it.</div>
+    <div id="allianceList"></div>
+    <div class="sub">New alliance</div>
+    <div class="row">
+      <input type="text" id="newAllianceTag" placeholder="Tag, e.g. VAR" maxlength="3" style="width:110px">
+      <select id="newAllianceKingdom"></select>
+      <button id="btnAddAlliance">+ Add</button>
+    </div>
+    <div class="muted" style="margin-top:4px">The new alliance starts with the times of the alliance chosen at the top.</div>
+    <div class="err" id="newAllianceErr"></div>
+  </details>
+
+  <details class="card" data-key="kingdoms">
+    <summary>Kingdoms</summary>
+    <div class="muted" style="margin-bottom:4px">Each kingdom has the dates of its own rotating events; every alliance in it follows them. When you see an event in the game, put the day it starts in "Starts" (any occurrence, past or future); the page repeats it every 7, 14 or 28 days. "Day #" adds "(day #2)" after the name; "max" caps the number.</div>
+    <div id="kingdomList"></div>
+    <div class="sub">New kingdom</div>
+    <div class="row">
+      <span class="muted">#</span><input type="text" id="newKingdomNum" placeholder="1130" inputmode="numeric" style="width:90px">
+      <label class="row" style="gap:4px" title="Generation 4 and later: Champion's Way instead of Desert Trial"><input type="checkbox" id="newKingdomGen4"> Gen 4+</label>
+      <button id="btnAddKingdom">+ Add</button>
+    </div>
+    <div class="err" id="newKingdomErr"></div>
+  </details>
 
   <div class="kgroup">Shared by all alliances</div>
 
-  <details class="card">
+  <details class="card" data-key="layout">
     <summary>Title and layout</summary>
     <div class="row"><label class="lbl">Title</label><input type="text" id="setTitle" class="grow"></div>
     <div class="row" style="margin-top:8px"><label class="lbl">Limit</label><input type="number" id="setLimit" style="width:90px"><span class="muted">characters, line breaks included</span></div>
@@ -177,41 +208,31 @@ td input[type=text].nm{width:100%;min-width:130px}
     <label class="row" style="margin-top:8px"><input type="checkbox" id="optGLead"> Start the normal message with an empty line</label>
   </details>
 
-  <details class="card">
+  <details class="card" data-key="notes">
     <summary>Automatic reminders</summary>
     <div class="muted" style="margin-bottom:8px">Added to the top of the message on the days chosen.</div>
     <div id="notesList"></div>
-    <button id="addNote" style="margin-top:8px">Add reminder</button>
+    <button id="addNote" style="margin-top:8px">+ Add reminder</button>
   </details>
 
-  <details class="card">
+  <details class="card" data-key="presets">
     <summary>Reminder buttons</summary>
     <div class="muted" style="margin-bottom:8px">The buttons under "Reminders at the top". Short name + text.</div>
     <div id="presetsList"></div>
-    <button id="addPreset" style="margin-top:8px">Add button</button>
+    <button id="addPreset" style="margin-top:8px">+ Add button</button>
   </details>
 
-  <details class="card">
+  <details class="card" data-key="trials">
     <summary>Mystic Trial ratios</summary>
     <div class="muted" style="margin-bottom:8px">On the GitHub version this list is replaced when a newer events.json is published.</div>
     <div class="scroll"><table id="trialTable"></table></div>
-    <button id="addTrial" style="margin-top:8px">Add room</button>
+    <button id="addTrial" style="margin-top:8px">+ Add room</button>
   </details>
 
-  <div class="kgroup" id="allianceHeading">Alliance</div>
+  <div class="kgroup">Game events (all kingdoms)</div>
 
-  <details class="card">
-    <summary>Alliance times</summary>
-    <div class="muted" style="margin-bottom:8px"><b>Set these for your alliance:</b> tick the ones you use and put your own hours and dates (the Bear Trap date is any day your traps run).</div>
-    <div class="muted" style="margin-bottom:8px">Shown under "Today", sorted by hour. Either repeat every N days from a date (Bear Traps: every 2), or attach to a day of a game event (Viking Vengeance day 1, Swordland day 7…). On the day before, items with the same group are joined under "Tomorrow", e.g. "Bear Traps (14/22 UTC)".</div>
-    <div class="scroll"><table id="timedTable"></table></div>
-    <button id="addTimed" style="margin-top:8px">Add time</button>
-  </details>
-
-  <div class="kgroup">Game events</div>
-
-  <details class="card">
-    <summary>Fixed events (all kingdoms)</summary>
+  <details class="card" data-key="fixed">
+    <summary>Fixed events</summary>
     <div class="muted" style="margin-bottom:8px">Same dates in every kingdom; the dates come from the cycle start. Tick to show an event in the message. Edit only if the game changes something. On the GitHub version these events are updated from the site when a newer list is published (your ticks are kept).</div>
     <div class="row" style="margin-bottom:8px">
       <span class="muted">Cycle start</span><b id="anchorText"></b>
@@ -224,30 +245,19 @@ td input[type=text].nm{width:100%;min-width:130px}
     <div id="fixedList"></div>
   </details>
 
-  <details class="card">
-    <summary id="kingdomEventsSummary">Kingdom events</summary>
-    <div class="muted" style="margin-bottom:8px">Events whose dates depend on this kingdom (they start counting from the kingdom's first occurrence). When you see one in the game, put the day it starts in "Starts" (any occurrence, past or future); the page repeats it every 7, 14 or 28 days. "Day #" adds "(day #2)" after the name; "max" caps the number.</div>
-    <div class="scroll"><table id="cycleTable"></table></div>
-    <button id="addCycle" style="margin-top:8px">Add event</button>
-  </details>
-
-  <details class="card">
+  <details class="card" data-key="special">
     <summary>One-off events</summary>
-    <div class="muted" style="margin-bottom:8px">Events outside the cycle (Fantasy Theater, seasonal events…). Pick a known one or type your own.</div>
-    <div class="sub" style="margin-top:0">All kingdoms</div>
+    <div class="muted" style="margin-bottom:8px">Events outside the cycle (Fantasy Theater, seasonal events…) in every kingdom. Events of one kingdom only are in its card under Kingdoms.</div>
     <div class="scroll"><table id="specialShared"></table></div>
-    <div class="sub" id="specialKingdomTitle">This kingdom</div>
-    <div class="scroll"><table id="specialKingdom"></table></div>
     <div class="row" style="margin-top:8px">
       <select id="specialPick"></select>
-      <button id="addSpecialShared">Add for all kingdoms</button>
-      <button id="addSpecialKingdom">Add for this kingdom</button>
+      <button id="addSpecialShared">+ Add</button>
     </div>
   </details>
 
-  <details class="card">
+  <details class="card" data-key="backup">
     <summary>Backup and reset</summary>
-    <div class="muted" style="margin-bottom:8px">"Download settings" saves a file with your alliances, kingdoms, times, reminders and events, without your day-by-day notes and battles: good for giving to someone. "Download full backup" keeps everything. "Load file" reads either one (it replaces all your data; you are asked to confirm).<br>"Show this alliance" puts the alliance and its kingdom here as text, to give to someone. "Show everything" puts all your data here, to move it to another browser or device. Paste either kind and press Import: an alliance is added; "everything" replaces all your data (you are asked to tap twice).</div>
+    <div class="muted" style="margin-bottom:8px">"Download settings" saves a file with your alliances, kingdoms, times, reminders and events, without your day-by-day notes and battles: good for giving to someone. "Download full backup" keeps everything. "Load file" reads either one (it replaces all your data; you are asked to confirm).<br>"Show this alliance" puts the alliance chosen at the top and its kingdom here as text, to give to someone. "Show everything" puts all your data here, to move it to another browser or device. Paste either kind and press Import: an alliance is added; "everything" replaces all your data (you are asked to tap twice).</div>
     <textarea id="backupText" rows="5" spellcheck="false" style="font-family:var(--mono);font-size:12px"></textarea>
     <div class="row" style="margin-top:8px">
       <button id="btnExport">Show this alliance</button>
@@ -261,14 +271,14 @@ td input[type=text].nm{width:100%;min-width:130px}
       <label class="row" style="gap:4px"><span class="muted">Load file:</span><input type="file" id="fileImport" accept=".json,application/json"></label>
     </div>
     <div class="row" style="margin-top:8px">
-      <button id="btnResetAlliance" class="danger">Reset alliance settings</button>
+      <button id="btnResetAlliance" class="danger">Reset alliance times</button>
       <button id="btnResetKingdom" class="danger">Reset game events (all kingdoms + this one)</button>
       <button id="btnResetGlobal" class="danger">Reset shared reminders and ratios</button>
     </div>
     <div class="status" id="backupStatus"></div>
   </details>
 
-  <div class="muted">Empty boxes in event icons are Kingshot's own in-game icons: they look blank here but show correctly when pasted in the game chat. Dates use the game's UTC day.</div>
+  <div class="muted" style="margin-top:14px">Empty boxes in event icons are Kingshot's own in-game icons: they look blank here but show correctly when pasted in the game chat. Dates use the game's UTC day. <a href="edit.html">Edit events.json</a> (for whoever publishes the game events).</div>
 </div>
 
 <script>
@@ -285,7 +295,7 @@ function todayUtc(){ return Math.floor(Date.now()/DAY); }
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 
 const G = {brawl:'', viking:'', roulette:'', armament:'', bounty:''};
-const BATTLE = {S:{label:'Sanctuary', count:12, emoji:'🏰'}, F:{label:'Fortress', count:4, emoji:'🏰'}};
+const BATTLE = {S:{label:'Sanctuary', plural:'Sanctuaries', count:12, emoji:'🏰'}, F:{label:'Fortress', plural:'Fortresses', count:4, emoji:'🏰'}};
 // Sanctuary/Fortress battles are on Fridays. At sign-up officers vote 3 slots; the most-voted slot of the registered
 // alliances sets each structure's start time, so only these hours are possible.
 const BATTLE_SLOTS = [3, 9, 13, 14, 17];
@@ -510,6 +520,20 @@ function battlesFor(p, n){
   return (p.battles||[]).filter(b=>b.date===d).sort((a,b)=>(a.hour-b.hour) || a.type.localeCompare(b.type) || a.num-b.num);
 }
 function battleLine(b){ const t = BATTLE[b.type]; return line(t.emoji, t.label + ' #' + b.num + ': ' + b.hour + ' UTC'); }
+function joinAnd(xs){ return xs.length < 2 ? xs.join('') : xs.slice(0,-1).join(', ') + ' & ' + xs[xs.length-1]; }
+// One line per type, numbers with the same hour together: "Sanctuaries: #6 (13 UTC), #7 & #12 (14 UTC)"
+function battleLines(p, n){
+  const out = [], list = battlesFor(p, n);
+  for (const type of ['S','F']){
+    const bs = list.filter(b=>b.type===type); if (!bs.length) continue;
+    const byHour = new Map();
+    for (const b of bs){ if (!byHour.has(b.hour)) byHour.set(b.hour, []); byHour.get(b.hour).push(b.num); }
+    const parts = [...byHour.keys()].sort((x,y)=>x-y).map(h=>joinAnd(byHour.get(h).sort((x,y)=>x-y).map(x=>'#'+x)) + ' (' + h + ' UTC)');
+    const t = BATTLE[type];
+    out.push({h:bs[0].hour*60, s:line(t.emoji, (bs.length > 1 ? t.plural : t.label) + ': ' + parts.join(', '))});
+  }
+  return out;
+}
 
 function line(emoji, text){ return '- ' + (emoji ? emoji + ' ' : '') + text; }
 function evName(e){ const d = e.maxDay > 0 ? Math.min(e.dayIdx, e.maxDay) : e.dayIdx; return e.name + (e.showDay && d ? ' (day #' + d + ')' : ''); }
@@ -548,7 +572,7 @@ function collectDay(p, n){
     else today.push(line(e.emoji, evName(e)));
   }
   for (const t of timedFor(p, n)) if (!excl.has('t:'+t.id)) timedLines.push({h:hourOf(t.time), s:line(t.emoji, t.label + (t.time ? ': ' + t.time : ''))});
-  for (const b of battlesFor(p, n)) timedLines.push({h:b.hour*60, s:battleLine(b)});
+  timedLines.push(...battleLines(p, n));
   if (isBattleDay(n) && !battlesFor(p, n).length) timedLines.push({h:9998, s:line(BATTLE.S.emoji, BATTLE_TBD)});
   for (const s of extraLines(day.today)) timedLines.push({h:lineHour(s), s});
   timedLines.sort((a,b)=>a.h-b.h);
@@ -577,7 +601,7 @@ function collectDay(p, n){
     else tom.push(line(e.emoji, e.name));
   }
   if (p.opts.timedTomorrow) tomTimed.push(...groupedTimed(timedFor(p, n+1)));
-  for (const b of battlesFor(p, n+1)) tomTimed.push({h:b.hour*60, s:battleLine(b)});
+  tomTimed.push(...battleLines(p, n+1));
   if (isBattleDay(n+1) && !battlesFor(p, n+1).length) tomTimed.push({h:9998, s:line(BATTLE.S.emoji, BATTLE_TBD)});
   tomTimed.sort((a,b)=>a.h-b.h);
   tom.push(...tomTimed.map(x=>x.s));
@@ -634,7 +658,6 @@ const SCHEMA = 18;
 let S = null;   // {schema, alliances:{name:alliance}, kingdoms:{name:kingdom}, active, updatedAt}
 let curDay = todayUtc();
 let outEdited = false;
-let battleTarget = 0;   // 0 = today, 1 = tomorrow
 let docRef = null, saveTimer = null, saving = false, pendingSave = false;
 
 function freshState(){
@@ -972,13 +995,12 @@ function renderDate(){
 }
 
 // ---------------- render: battles ----------------
+// Hours are only known on Friday (the battle day), so the picker only shows then.
 function renderBattles(){
-  const a = A(), n = curDay + battleTarget, d = diso(n);
-  $('segToday').textContent = 'Today ' + ddm(curDay); $('segTomorrow').textContent = 'Tomorrow ' + ddm(curDay+1);
-  $('segToday').className = battleTarget===0 ? 'on' : ''; $('segTomorrow').className = battleTarget===1 ? 'on' : '';
-  const v = V(), sanct = v.cycle.find(c=>c.id==='sanctuary');
-  const h = sanct ? cycleHit(v, sanct, n) : null;
-  $('battleHint').textContent = (isBattleDay(n) ? 'Battle day. ' : 'Battles are on Fridays. ') + 'Hours: the most-voted slot (' + battleSlots().join(', ') + ' UTC).';
+  const a = A(), n = curDay, d = diso(n);
+  $('battleBox').style.display = isBattleDay(n) ? '' : 'none';
+  if (!isBattleDay(n)) return;
+  $('battleHint').textContent = 'Battle day. Hours: the most-voted slot (' + battleSlots().join(', ') + ' UTC).';
   for (const type of ['S','F']){
     const box = $('chips'+type); box.innerHTML='';
     for (let i=1; i<=BATTLE[type].count; i++){
@@ -994,15 +1016,15 @@ function renderBattles(){
   }
   const list = $('battleList'); list.innerHTML='';
   const items = battlesFor(a, n);
-  if (!items.length){ list.innerHTML = '<div class="muted">Tap a number to add a battle on ' + ddm(n) + '.</div>'; return; }
+  if (!items.length){ list.innerHTML = '<div class="muted">Tap a number to add a battle.</div>'; return; }
   for (const b of items){
     const r = document.createElement('div'); r.className='battle';
-    const s = document.createElement('span'); s.textContent = BATTLE[b.type].emoji + ' ' + BATTLE[b.type].label + ' #' + b.num; s.style.minWidth='130px';
+    const s = document.createElement('span'); s.textContent = BATTLE[b.type].label + ' #' + b.num; s.style.minWidth='130px';
     const sel = document.createElement('select');
     const slots = battleSlots(), hours = slots.includes(b.hour) ? slots : [...slots, b.hour].sort((x,y)=>x-y);   // keep an older hour visible
     for (const hh of hours){ const o=document.createElement('option'); o.value=hh; o.textContent=String(hh).padStart(2,'0')+':00 UTC'; if(hh===b.hour) o.selected=true; sel.appendChild(o); }
     sel.onchange = ()=>{ b.hour = +sel.value; changed(); renderBattles(); };
-    const x = btn('✕', ()=>{ a.battles = a.battles.filter(q=>q!==b); changed(); renderBattles(); }, 'danger');
+    const x = btn('×', ()=>{ a.battles = a.battles.filter(q=>q!==b); changed(); renderBattles(); }, 'danger icon');
     r.append(s, sel, x); list.appendChild(r);
   }
 }
@@ -1049,12 +1071,7 @@ function th(...names){ const r=document.createElement('tr'); for(const n of name
 function settingsChanged(){ persist(); renderDay(); renderBattles(); renderMessage(); }
 
 function renderGeneral(){
-  const a=A(), g=GL();
-  const allies = Object.keys(S.alliances).filter(n=>S.alliances[n].kingdom===a.kingdom).join(', ');
-  $('allianceHeading').textContent = 'Alliance — ' + S.active;
-  $('kingdomEventsSummary').textContent = a.kingdom + ' events (' + allies + ')';
-  $('specialKingdomTitle').textContent = a.kingdom + ' only';
-  $('addSpecialKingdom').textContent = 'Add for ' + a.kingdom;
+  const g=GL();
   $('setTitle').value=g.title; $('setLimit').value=g.opts.charLimit;
   $('setAnchor').value=SH().anchor; $('anchorText').textContent = WD[wday(dnum(SH().anchor))] + ' ' + ddm(dnum(SH().anchor));
   $('optLead').checked=g.opts.leadNewline; $('optStartToday').checked=g.opts.startTodayInToday; $('optTimedTomorrow').checked=g.opts.timedTomorrow;
@@ -1083,15 +1100,16 @@ function renderFixed(){
   const box=$('fixedList'); box.innerHTML='';
   const list = SH().cycle.slice().sort((x,y)=>orderOf(x.id)-orderOf(y.id));
   for (const ev of list){
-    const wrap=document.createElement('div'); wrap.style.cssText='border-bottom:1px solid var(--line);padding:6px 0';
-    const top=document.createElement('div'); top.className='row';
+    const wrap=document.createElement('div'); wrap.style.cssText='padding:4px 0';
+    const top=document.createElement('div'); top.className='fixrow';
     const name=document.createElement('span'); name.className='grow'; name.textContent=(ev.emoji?ev.emoji+' ':'')+ev.name+(ev.showDay?'  (day #)':'');
-    const dates=document.createElement('span'); dates.className='muted';
+    const dates=document.createElement('div'); dates.className='muted';
     const upd=()=>{ const n=cycleNearest(V(), ev, curDay); dates.textContent=ddm(n.start)+'–'+ddm(n.end)+' · every '+ev.every+' days'; };
     upd();
     const editing = editingFixed.has(ev.id);
     const eb = btn(editing ? 'Done' : 'Edit', ()=>{ if(editing) editingFixed.delete(ev.id); else editingFixed.add(ev.id); renderFixed(); });
-    top.append(inp('checkbox', ev.on, '', x=>{ev.on=x; settingsChanged();}), name, dates, eb);
+    const mid=document.createElement('div'); mid.className='grow'; mid.append(name, dates);
+    top.append(inp('checkbox', ev.on, '', x=>{ev.on=x; settingsChanged();}), mid, eb);
     wrap.appendChild(top);
     if (editing){
       const e = cycleEditors(ev, ()=>{ upd(); });
@@ -1107,10 +1125,9 @@ function renderFixed(){
     box.appendChild(wrap);
   }
 }
-function renderCycle(){
-  const tb=$('cycleTable'); tb.innerHTML='';
+function cycleTable(tb, k){
+  tb.innerHTML='';
   tb.appendChild(th('On','Icon','Event','Starts','Days','Every','Dates','Day #','Starts at','Ends at','Show on days','Last day',''));
-  const k=K();
   for (const ev of k.cycle.slice().sort((x,y)=>orderOf(x.id)-orderOf(y.id))){
     const r=document.createElement('tr');
     const dates=document.createElement('span'); dates.className='muted';
@@ -1122,7 +1139,7 @@ function renderCycle(){
       td(inp('text', ev.emoji, 'emo', x=>{ev.emoji=x; settingsChanged();})),
       td(inp('text', ev.name, 'nm', x=>{ev.name=x; settingsChanged();})),
       td(e.startInp), td(e.lenInp), td(e.sel), td(dates), td(e.dayCb, e.maxInp), td(e.timeInp), td(e.endInp), td(e.daysInp), td(e.lastCb),
-      td(btn('✕', ()=>{ k.cycle=k.cycle.filter(x=>x!==ev); settingsChanged(); renderCycle(); renderTimed(); renderNotes(); }, 'danger'))
+      td(btn('×', ()=>{ k.cycle=k.cycle.filter(x=>x!==ev); settingsChanged(); renderKingdoms(); renderAlliances(); renderNotes(); }, 'danger icon'))
     );
     tb.appendChild(r);
   }
@@ -1140,21 +1157,22 @@ function specialTable(tb, owner){
       td(inp('date', sp.from, '', x=>{sp.from=x; settingsChanged();})),
       td(inp('date', sp.to, '', x=>{sp.to=x; settingsChanged();})),
       td(inp('checkbox', sp.showDay, '', x=>{sp.showDay=x; settingsChanged();})),
-      td(btn('✕', ()=>{ owner.special=owner.special.filter(x=>x!==sp); settingsChanged(); renderSpecial(); }, 'danger'))
+      td(btn('×', ()=>{ owner.special=owner.special.filter(x=>x!==sp); settingsChanged(); specialTable(tb, owner); }, 'danger icon'))
     );
     tb.appendChild(r);
   }
   if (!owner.special.length){ const r=document.createElement('tr'); const c=document.createElement('td'); c.colSpan=7; c.className='muted'; c.textContent='None yet.'; r.appendChild(c); tb.appendChild(r); }
 }
-function renderSpecial(){ specialTable($('specialShared'), SH()); specialTable($('specialKingdom'), K()); }
-function ruleEditor(obj){
+function renderSpecial(){ specialTable($('specialShared'), SH()); }
+function ruleEditor(obj, view){
+  const VW = ()=>view || V();
   const box=document.createElement('div'); box.className='ruleBox';
   const type=document.createElement('select');
   for (const [v,t] of [['every','Every N days from'],['event','Day of game event'],['weekday','Weekdays'],['date','One date']]){ const o=document.createElement('option'); o.value=v; o.textContent=t; if(obj.rule.type===v) o.selected=true; type.appendChild(o); }
   type.onchange=()=>{
     const t=type.value;
     if (t==='every') obj.rule={type:'every', date:diso(curDay), every:2};
-    if (t==='event') obj.rule={type:'event', ev:(V().cycle[0]||{}).id, from:1, to:1};
+    if (t==='event') obj.rule={type:'event', ev:(VW().cycle[0]||{}).id, from:1, to:1};
     if (t==='weekday') obj.rule={type:'weekday', days:[wday(curDay)]};
     if (t==='date') obj.rule={type:'date', date:diso(curDay)};
     settingsChanged(); fill();
@@ -1165,7 +1183,7 @@ function ruleEditor(obj){
     if (r.type==='every'){
       rest.append(inp('date', r.date, '', x=>{r.date=x; settingsChanged();}), document.createTextNode('every'), inp('number', r.every, '', x=>{r.every=Math.max(1,x|0); settingsChanged();}), document.createTextNode('days'));
     } else if (r.type==='event'){
-      const s=document.createElement('select'), v=V();
+      const s=document.createElement('select'), v=VW();
       for (const ev of v.cycle){ const o=document.createElement('option'); o.value=ev.id; o.textContent=ev.name+' ('+ddm(cycleNearest(v,ev,curDay).start)+')'; if(ev.id===r.ev) o.selected=true; s.appendChild(o); }
       s.onchange=()=>{ r.ev=s.value; settingsChanged(); };
       const un=document.createElement('select');
@@ -1181,11 +1199,12 @@ function ruleEditor(obj){
       rest.append(inp('date', r.date, '', x=>{r.date=x; settingsChanged();}));
     }
   }
-  fill(); box.append(type, rest); return box;
+  fill(); box.append(type, rest); box.typeSel = type; box.rest = rest; return box;
 }
-function renderTimed(){
-  const a=A(), tb=$('timedTable'); tb.innerHTML='';
+function timedTable(tb, a){
+  tb.innerHTML='';
   tb.appendChild(th('On','Icon','Label','Time','Group (Tomorrow)','When',''));
+  const view = S.kingdoms[a.kingdom] ? makeView(a, S.kingdoms[a.kingdom], GL(), SH()) : V();
   a.timed.forEach((t,i)=>{
     const r=document.createElement('tr');
     const grp=inp('text', t.group||'', 'nm', x=>{t.group=x; settingsChanged();}); grp.placeholder='e.g. Bear Traps';
@@ -1194,8 +1213,8 @@ function renderTimed(){
       td(inp('text', t.emoji, 'emo', x=>{t.emoji=x; settingsChanged();})),
       td(inp('text', t.label, 'nm', x=>{t.label=x; settingsChanged();})),
       td((()=>{ const e=inp('text', t.time, '', x=>{t.time=x; settingsChanged();}); e.style.width='90px'; return e; })()),
-      td(grp), td(ruleEditor(t)),
-      td(btn('✕', ()=>{ a.timed.splice(i,1); settingsChanged(); renderTimed(); }, 'danger'))
+      td(grp), td(ruleEditor(t, view)),
+      td(btn('×', ()=>{ a.timed.splice(i,1); settingsChanged(); timedTable(tb, a); }, 'danger icon'))
     );
     tb.appendChild(r);
   });
@@ -1203,12 +1222,16 @@ function renderTimed(){
 function renderNotes(){
   const a=GL(), box=$('notesList'); box.innerHTML='';
   a.notes.forEach((x,i)=>{
-    const d=document.createElement('div'); d.style.cssText='border-bottom:1px solid var(--line);padding:8px 0';
+    const d=document.createElement('div'); d.className='block';
+    // three fixed lines: on + kind of rule + remove; the rule's details; the text
+    const re=ruleEditor(x);
     const top=document.createElement('div'); top.className='row';
-    top.append(inp('checkbox', x.on, '', v=>{x.on=v; settingsChanged();}), ruleEditor(x), btn('✕', ()=>{ a.notes.splice(i,1); settingsChanged(); renderNotes(); }, 'danger'));
+    const gap=document.createElement('span'); gap.className='grow';
+    top.append(inp('checkbox', x.on, '', v=>{x.on=v; settingsChanged();}), re.typeSel, gap, btn('×', ()=>{ a.notes.splice(i,1); settingsChanged(); renderNotes(); }, 'danger icon'));
+    re.rest.style.marginTop='6px';
     const ta=document.createElement('textarea'); ta.rows=Math.min(6, x.text.split('\n').length+1); ta.value=x.text; ta.style.marginTop='6px';
     ta.oninput=()=>{ x.text=ta.value; settingsChanged(); };
-    d.append(top, ta); box.appendChild(d);
+    d.append(top, re.rest, ta); box.appendChild(d);
   });
 }
 function groupTextInput(x){
@@ -1219,12 +1242,12 @@ function groupTextInput(x){
 function renderPresets(){
   const a=GL(), box=$('presetsList'); box.innerHTML='';
   a.presets.forEach((x,i)=>{
-    const d=document.createElement('div'); d.style.cssText='border-bottom:1px solid var(--line);padding:8px 0';
+    const d=document.createElement('div'); d.className='block';
     const top=document.createElement('div'); top.className='row';
     const nm=inp('text', x.label, 'grow', v=>{x.label=v; settingsChanged();}); nm.placeholder='Button name';
     top.append(nm,
       btn('↑', ()=>{ if(i>0){ [a.presets[i-1],a.presets[i]]=[a.presets[i],a.presets[i-1]]; settingsChanged(); renderPresets(); } }),
-      btn('✕', ()=>{ a.presets.splice(i,1); settingsChanged(); renderPresets(); }, 'danger'));
+      btn('×', ()=>{ a.presets.splice(i,1); settingsChanged(); renderPresets(); }, 'danger icon'));
     const ta=document.createElement('textarea'); ta.rows=Math.min(5, x.text.split('\n').length+1); ta.value=x.text; ta.style.marginTop='6px';
     ta.oninput=()=>{ x.text=ta.value; settingsChanged(); };
     d.append(top, ta); box.appendChild(d);
@@ -1242,35 +1265,132 @@ function renderTrials(){
       td(inp('text', t.name, 'nm', v=>{t.name=v; settingsChanged();})),
       td(inp('text', t.ratio, 'emo', v=>{t.ratio=v; settingsChanged();})),
       td(dbx),
-      td(btn('✕', ()=>{ a.trials.splice(i,1); settingsChanged(); renderTrials(); }, 'danger'))
+      td(btn('×', ()=>{ a.trials.splice(i,1); settingsChanged(); renderTrials(); }, 'danger icon'))
     );
     tb.appendChild(r);
   });
 }
+// "Ffs, #1130": the same format as KSCompanion
+function allianceLabel(name){ const a = S.alliances[name]; return a && a.kingdom ? name + ', ' + a.kingdom : name; }
+function kSort(x, y){ const a = +String(x).replace(/\D/g,''), b = +String(y).replace(/\D/g,''); return (a && b) ? a - b : String(x).localeCompare(String(y)); }
 function renderSelectors(){
   const as=$('allianceSel'); as.innerHTML='';
-  for (const name of Object.keys(S.alliances).sort()){ const o=document.createElement('option'); o.value=name; o.textContent=name+'  ·  '+S.alliances[name].kingdom; if(name===S.active) o.selected=true; as.appendChild(o); }
-  const ks=$('kingdomSel'); ks.innerHTML='';
-  for (const name of Object.keys(S.kingdoms).sort()){ const o=document.createElement('option'); o.value=name; o.textContent=name; if(name===A().kingdom) o.selected=true; ks.appendChild(o); }
-  $('btnDeleteAlliance').disabled = Object.keys(S.alliances).length<2;
-  const used = Object.values(S.alliances).some(a=>a!==A() && a.kingdom===A().kingdom);
-  $('btnDeleteKingdom').disabled = Object.keys(S.kingdoms).length<2 || used;
-  $('btnDeleteKingdom').title = used ? 'Other alliances use this kingdom' : '';
-  $('optGen4').checked = K().variant === 'old';
+  for (const name of Object.keys(S.alliances).sort()){ const o=document.createElement('option'); o.value=name; o.textContent=allianceLabel(name); if(name===S.active) o.selected=true; as.appendChild(o); }
+  const nk=$('newAllianceKingdom'), cur=nk.value; nk.innerHTML='';
+  for (const kn of Object.keys(S.kingdoms).sort(kSort)){ const o=document.createElement('option'); o.value=kn; o.textContent=kn; nk.appendChild(o); }
+  nk.value = S.kingdoms[cur] ? cur : A().kingdom;
+}
+
+// Cards keep their open/closed state in this browser
+const CARDS_KEY = 'ks-agenda-cards';
+let cardOpen = {};
+try { cardOpen = JSON.parse(localStorage.getItem(CARDS_KEY) || '{}') || {}; } catch(e){}
+function keepCard(det, key){
+  if (cardOpen[key] !== undefined) det.open = !!cardOpen[key];
+  det.addEventListener('toggle', ()=>{ cardOpen[key] = det.open; try { localStorage.setItem(CARDS_KEY, JSON.stringify(cardOpen)); } catch(e){} });
+}
+function itemCard(key, title, note){
+  const det=document.createElement('details'); det.className='card item';
+  const sum=document.createElement('summary');
+  const t=document.createElement('span'); t.textContent=title; sum.appendChild(t);
+  if (note){ const m=document.createElement('span'); m.className='muted'; m.textContent=note; sum.appendChild(m); }
+  det.appendChild(sum); keepCard(det, key); return det;
+}
+function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined) e.textContent=text; return e; }
+function pickSelect(){
+  const s=document.createElement('select'); const o0=document.createElement('option'); o0.value=''; o0.textContent='Custom…'; s.appendChild(o0);
+  KNOWN_SPECIAL.forEach(([e,n],i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=n; s.appendChild(o); });
+  return s;
+}
+function addSpecialTo(owner, sel){ const v=sel.value; const k = v===''?['','New event']:KNOWN_SPECIAL[+v];
+  owner.special.push({id:uid(),on:true,showDay:false,emoji:k[0],name:k[1],from:diso(curDay),to:diso(curDay+6)}); settingsChanged(); }
+const TAG_RE = /^[A-Za-z0-9]{3}$/;
+
+function renderAlliances(){
+  const box=$('allianceList'); box.innerHTML='';
+  const names=Object.keys(S.alliances).sort();
+  for (const name of names){
+    const a=S.alliances[name];
+    const traps=a.timed.filter(t=>t.on && t.group==='Bear Traps').sort((x,y)=>hourOf(x.time)-hourOf(y.time));
+    const det=itemCard('a:'+name, allianceLabel(name), traps.length ? '🐻 ' + traps.map(t=>t.time).join(' · ') : '');
+    const f=el('div','fields');
+    const tag=inp('text', name, '', ()=>{}); tag.maxLength=3; tag.style.width='90px';
+    const err=el('div','err');
+    tag.addEventListener('change', ()=>{
+      const n=tag.value.trim();
+      if (n===name) return;
+      if (!TAG_RE.test(n)){ err.textContent='An alliance tag is 3 letters or digits.'; return; }
+      if (S.alliances[n]){ err.textContent=n+' already exists.'; return; }
+      S.alliances[n]=a; delete S.alliances[name]; if (S.active===name) S.active=n;
+      cardOpen['a:'+n]=true; persist(); renderAll();
+    });
+    const ks=document.createElement('select');
+    for (const kn of Object.keys(S.kingdoms).sort(kSort)){ const o=document.createElement('option'); o.value=kn; o.textContent=kn; if(kn===a.kingdom) o.selected=true; ks.appendChild(o); }
+    ks.onchange=()=>{ a.kingdom=ks.value; persist(); renderAll(); };
+    f.append(el('span','','Tag'), tag, el('span','','Kingdom'), ks);
+    const del=btn('Delete', e=>armed(e.currentTarget, 'Tap again to delete '+name, ()=>{ delete S.alliances[name]; if (S.active===name) S.active=Object.keys(S.alliances)[0]; persist(); renderAll(); }), 'danger');
+    del.disabled = names.length<2; if (del.disabled) del.title='The only alliance cannot be deleted';
+    const top=el('div','row'); top.style.justifyContent='space-between'; top.append(f, del);
+    det.append(top, err);
+    det.append(el('div','muted','Tick the times you use and put your own hours and dates (the Bear Trap date is any day your traps run). Shown under "Today", sorted by hour. Either repeat every N days from a date (Bear Traps: every 2), or attach to a day of a game event (Swordland day 7…). On the day before, items with the same group are joined under "Tomorrow", e.g. "Bear Traps (14/22 UTC)".'));
+    const sc=el('div','scroll'), tb=document.createElement('table'); sc.appendChild(tb); timedTable(tb, a);
+    const add=btn('+ Add time', ()=>{ a.timed.push({id:uid(),on:true,emoji:'',label:'New time',time:'0 UTC',group:'',rule:{type:'date',date:diso(curDay)}}); settingsChanged(); timedTable(tb, a); });
+    add.style.marginTop='8px';
+    det.append(sc, add);
+    box.appendChild(det);
+  }
+}
+
+function renderKingdoms(){
+  const box=$('kingdomList'); box.innerHTML='';
+  const names=Object.keys(S.kingdoms).sort(kSort);
+  for (const kn of names){
+    const k=S.kingdoms[kn];
+    const allies=Object.keys(S.alliances).filter(n=>S.alliances[n].kingdom===kn).sort();
+    const det=itemCard('k:'+kn, kn + (k.variant==='old' ? ' · Gen 4+' : ''), 'Alliances: ' + (allies.join(', ') || 'none'));
+    const f=el('div','fields');
+    const num=inp('text', kn.replace(/^#/,''), '', ()=>{}); num.inputMode='numeric'; num.style.width='90px';
+    const err=el('div','err');
+    num.addEventListener('change', ()=>{
+      const m=num.value.trim().match(/^[#Kk]?\s*(\d+)$/);
+      if (!m){ err.textContent='A kingdom is a number, e.g. 1130.'; return; }
+      const nn='#'+m[1]; if (nn===kn) return;
+      if (S.kingdoms[nn]){ err.textContent=nn+' already exists.'; return; }
+      S.kingdoms[nn]=k; delete S.kingdoms[kn]; for (const a of Object.values(S.alliances)) if (a.kingdom===kn) a.kingdom=nn;
+      cardOpen['k:'+nn]=true; persist(); renderAll();
+    });
+    const numRow=el('span','row'); numRow.append(el('span','muted','#'), num);
+    const gen=inp('checkbox', k.variant==='old', '', x=>{ setGeneration(k, x); persist(); renderAll(); });
+    const genL=el('label','row'); genL.style.gap='4px'; genL.title="Generation 4 and later: Champion's Way instead of Desert Trial"; genL.append(gen, document.createTextNode('Gen 4+'));
+    f.append(el('span','','Number'), numRow, el('span','','Generation'), genL);
+    const del=btn('Delete', e=>armed(e.currentTarget, 'Tap again to delete '+kn, ()=>{ delete S.kingdoms[kn]; persist(); renderAll(); }), 'danger');
+    del.disabled = allies.length>0 || names.length<2;
+    if (allies.length) del.title='Move '+allies.join(', ')+' to another kingdom first'; else if (names.length<2) del.title='The only kingdom cannot be deleted';
+    const top=el('div','row'); top.style.justifyContent='space-between'; top.append(f, del);
+    det.append(top, err);
+    det.append(el('div','sub','Rotating events'));
+    const sc=el('div','scroll'), tb=document.createElement('table'); sc.appendChild(tb); cycleTable(tb, k);
+    const add=btn('+ Add event', ()=>{ k.cycle.push({id:uid(),emoji:'',name:'New event',start:mod(curDay-dnum(SH().anchor),28),len:1,every:28,on:true,showDay:false,days:[],lastDay:true,highlight:false}); settingsChanged(); cycleTable(tb, k); });
+    add.style.marginTop='8px';
+    det.append(sc, add, el('div','sub','One-off events (this kingdom only)'));
+    const sc2=el('div','scroll'), tb2=document.createElement('table'); sc2.appendChild(tb2); specialTable(tb2, k);
+    const pick=pickSelect(), addSp=btn('+ Add', ()=>{ addSpecialTo(k, pick); specialTable(tb2, k); });
+    const r2=el('div','row'); r2.style.marginTop='8px'; r2.append(pick, addSp);
+    det.append(sc2, r2);
+    box.appendChild(det);
+  }
 }
 function renderAll(){
-  renderSelectors(); renderGeneral(); renderDate(); renderBattles(); renderDay(); renderFixed(); renderCycle(); renderSpecial(); renderTimed(); renderNotes(); renderPresets(); renderTrials();
+  renderSelectors(); renderGeneral(); renderDate(); renderBattles(); renderDay(); renderFixed(); renderAlliances(); renderKingdoms(); renderSpecial(); renderNotes(); renderPresets(); renderTrials();
   outEdited=false; gEdited=false; renderMessage();
 }
 
 // ---------------- wiring ----------------
-function setDay(n){ curDay=n; outEdited=false; gEdited=false; renderDate(); renderBattles(); renderDay(); renderFixed(); renderCycle(); renderMessage(); }
+function setDay(n){ curDay=n; outEdited=false; gEdited=false; renderDate(); renderBattles(); renderDay(); renderFixed(); renderKingdoms(); renderMessage(); }
 $('prevDay').onclick=()=>setDay(curDay-1);
 $('nextDay').onclick=()=>setDay(curDay+1);
 $('todayBtn').onclick=()=>setDay(todayUtc());
 $('dateInput').onchange=e=>{ if(e.target.value) setDay(dnum(e.target.value)); };
-$('segToday').onclick=()=>{ battleTarget=0; renderBattles(); };
-$('segTomorrow').onclick=()=>{ battleTarget=1; renderBattles(); };
 $('out').addEventListener('input', ()=>{ outEdited=true; $('editedFlag').textContent='edited by hand'; $('resetOut').style.display=''; renderCount(); });
 $('resetOut').onclick=()=>{ outEdited=false; renderMessage(); };
 $('gOut').addEventListener('input', ()=>{ gEdited=true; $('gEditedFlag').textContent='edited by hand'; $('gResetOut').style.display=''; renderGCount(); });
@@ -1308,7 +1428,7 @@ function shiftAnchor(newIso){
   if (!delta) return;
   SH().anchor = newIso;
   for (const k of Object.values(S.kingdoms)) for (const c of k.cycle) c.start = mod(c.start - delta, Math.max(1, c.every|0));
-  renderGeneral(); settingsChanged(); renderDate(); renderFixed(); renderCycle();
+  renderGeneral(); settingsChanged(); renderDate(); renderFixed(); renderKingdoms();
 }
 $('setAnchor').addEventListener('change', e=>{ if(e.target.value) shiftAnchor(e.target.value); });
 $('anchorEditBtn').onclick=()=>{ const e=$('anchorEdit'); const open=e.style.display==='none'; e.style.display=open?'flex':'none'; $('anchorEditBtn').textContent=open?'Done':'Change'; };
@@ -1316,23 +1436,15 @@ document.querySelectorAll('[data-shift]').forEach(b=>b.onclick=()=>shiftAnchor(d
 for (const [id,key] of [['optLead','leadNewline'],['optStartToday','startTodayInToday'],['optTimedTomorrow','timedTomorrow'],['optTrials','trials'],['optFooter','footer']])
   $(id).onchange=e=>{ GL().opts[key]=e.target.checked; settingsChanged(); };
 
-$('addCycle').onclick=()=>{ K().cycle.push({id:uid(),emoji:'',name:'New event',start:mod(curDay-dnum(SH().anchor),28),len:1,every:28,on:true,showDay:false}); settingsChanged(); renderCycle(); };
-(function(){ const s=$('specialPick'); const o0=document.createElement('option'); o0.value=''; o0.textContent='Custom…'; s.appendChild(o0);
-  KNOWN_SPECIAL.forEach(([e,n],i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=n; s.appendChild(o); }); })();
-function addSpecialTo(owner){ const v=$('specialPick').value; const k = v===''?['','New event']:KNOWN_SPECIAL[+v];
-  owner.special.push({id:uid(),on:true,showDay:false,emoji:k[0],name:k[1],from:diso(curDay),to:diso(curDay+6)}); settingsChanged(); renderSpecial(); }
-$('addSpecialShared').onclick=()=>addSpecialTo(SH());
-$('addSpecialKingdom').onclick=()=>addSpecialTo(K());
-$('addTimed').onclick=()=>{ A().timed.push({id:uid(),on:true,emoji:'',label:'New time',time:'0 UTC',group:'',rule:{type:'date',date:diso(curDay)}}); settingsChanged(); renderTimed(); };
+(function(){ const s=$('specialPick'), p=pickSelect(); while (p.firstChild) s.appendChild(p.firstChild); })();
+$('addSpecialShared').onclick=()=>{ addSpecialTo(SH(), $('specialPick')); renderSpecial(); };
 $('addNote').onclick=()=>{ GL().notes.push({id:uid(),on:true,text:'🔔 ',rule:{type:'date',date:diso(curDay)}}); settingsChanged(); renderNotes(); };
 $('addPreset').onclick=()=>{ GL().presets.push({id:uid(),label:'New button',text:'🔔 '}); settingsChanged(); renderPresets(); };
 $('addTrial').onclick=()=>{ GL().trials.push({id:uid(),emoji:'',name:'Room',ratio:'50/20/30',days:[]}); settingsChanged(); renderTrials(); };
+document.querySelectorAll('details[data-key]').forEach(d=>keepCard(d, 'c:'+d.dataset.key));
 
 // alliance / kingdom management
-let nameMode=null;
-function askName(mode, initial){ nameMode=mode; $('nameRow').style.display='flex'; $('nameInput').value=initial; $('nameInput').focus(); }
 $('allianceSel').onchange=e=>{ S.active=e.target.value; persist(); renderAll(); };
-$('kingdomSel').onchange=e=>{ A().kingdom=e.target.value; persist(); renderAll(); };
 // Gen 4+: Champion's Way replaces Desert Trial (same dates). Fishing Tournament and Mystic Divination run in both.
 function setGeneration(k, old){
   k.variant = old ? 'old' : 'young';
@@ -1341,36 +1453,30 @@ function setGeneration(k, old){
   if (old && d.name==='Desert Trial'){ d.name="Champion's Way"; d.emoji='🏆'; }
   if (!old && d.name==="Champion's Way"){ d.name='Desert Trial'; d.emoji='🐺'; }
 }
-$('optGen4').onchange=e=>{ setGeneration(K(), e.target.checked); persist(); renderAll(); };
-$('btnNewAlliance').onclick=()=>askName('newA', '');
-$('btnRenameAlliance').onclick=()=>askName('renA', S.active);
-$('btnNewKingdom').onclick=()=>askName('newK', '#');
-$('btnRenameKingdom').onclick=()=>askName('renK', A().kingdom);
-$('nameCancel').onclick=()=>{ $('nameRow').style.display='none'; };
-$('nameOk').onclick=()=>{
-  const n=$('nameInput').value.trim(); if(!n) return;
-  if (nameMode==='newA' || nameMode==='renA'){
-    if (S.alliances[n] && n!==S.active){ $('nameInput').value=n+' (2)'; return; }
-    if (nameMode==='newA'){ const c=clone(A()); c.days={}; c.battles=[]; S.alliances[n]=c; S.active=n; }
-    else if (n!==S.active){ S.alliances[n]=S.alliances[S.active]; delete S.alliances[S.active]; S.active=n; }
-  } else {
-    // Kingdoms are numbers, stored as #1130
-    const m = n.match(/^[#Kk]?\s*(\d+)$/);
-    if (!m){ $('nameInput').value=''; $('nameInput').placeholder='Kingdom number, e.g. 1130'; return; }
-    const kn = '#' + m[1], cur=A().kingdom;
-    if (S.kingdoms[kn] && kn!==cur){ $('nameInput').value=''; $('nameInput').placeholder=kn+' already exists'; return; }
-    if (nameMode==='newK'){ S.kingdoms[kn]=clone(K()); A().kingdom=kn; }
-    else if (kn!==cur){ S.kingdoms[kn]=S.kingdoms[cur]; delete S.kingdoms[cur]; for (const a of Object.values(S.alliances)) if (a.kingdom===cur) a.kingdom=kn; }
-  }
-  $('nameRow').style.display='none'; persist(); renderAll();
+$('btnAddAlliance').onclick=()=>{
+  const n=$('newAllianceTag').value.trim(), kn=$('newAllianceKingdom').value, err=$('newAllianceErr');
+  if (!TAG_RE.test(n)){ err.textContent='An alliance tag is 3 letters or digits.'; return; }
+  if (S.alliances[n]){ err.textContent=n+' already exists.'; return; }
+  if (!S.kingdoms[kn]){ err.textContent='Add a kingdom first.'; return; }
+  const c=clone(A()); c.days={}; c.battles=[]; c.kingdom=kn;
+  S.alliances[n]=c; S.active=n; cardOpen['a:'+n]=true; err.textContent=''; $('newAllianceTag').value='';
+  persist(); renderAll();
+};
+$('btnAddKingdom').onclick=()=>{
+  const m=$('newKingdomNum').value.trim().match(/^[#Kk]?\s*(\d+)$/), err=$('newKingdomErr');
+  if (!m){ err.textContent='A kingdom is a number, e.g. 1130.'; return; }
+  const kn='#'+m[1];
+  if (S.kingdoms[kn]){ err.textContent=kn+' already exists.'; return; }
+  S.kingdoms[kn]=defaultKingdom($('newKingdomGen4').checked ? 'old' : 'young');
+  optionsV18({kingdoms:{x:S.kingdoms[kn]}});
+  cardOpen['k:'+kn]=true; err.textContent=''; $('newKingdomNum').value='';
+  persist(); renderAll();
 };
 function armed(btnEl, label, action){
   if (btnEl.dataset.armed){ delete btnEl.dataset.armed; btnEl.textContent=btnEl.dataset.label; action(); return; }
   btnEl.dataset.label = btnEl.textContent; btnEl.dataset.armed='1'; btnEl.textContent=label;
   setTimeout(()=>{ if(btnEl.dataset.armed){ delete btnEl.dataset.armed; btnEl.textContent=btnEl.dataset.label; } }, 4000);
 }
-$('btnDeleteAlliance').onclick=e=>armed(e.currentTarget, 'Tap again to delete '+S.active, ()=>{ delete S.alliances[S.active]; S.active=Object.keys(S.alliances)[0]; persist(); renderAll(); });
-$('btnDeleteKingdom').onclick=e=>armed(e.currentTarget, 'Tap again to delete '+A().kingdom, ()=>{ const cur=A().kingdom; delete S.kingdoms[cur]; A().kingdom=Object.keys(S.kingdoms)[0]; persist(); renderAll(); });
 $('btnResetAlliance').onclick=e=>armed(e.currentTarget, 'Tap again to reset '+S.active, ()=>{ const a=A(); const d=defaultAlliance(a.kingdom); d.days=a.days; d.battles=a.battles; S.alliances[S.active]=d; persist(); renderAll(); });
 $('btnResetGlobal').onclick=e=>armed(e.currentTarget, 'Tap again to reset shared texts', ()=>{ S.global=defaultGlobal(); persist(); renderAll(); });
 $('btnResetKingdom').onclick=e=>armed(e.currentTarget, 'Tap again to reset all events', ()=>{ const k=K(); S.kingdoms[A().kingdom]=defaultKingdom(k.variant||'young'); S.shared=defaultShared(); persist(); renderAll(); });
