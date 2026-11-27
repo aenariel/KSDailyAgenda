@@ -596,7 +596,7 @@ function cycleDayInfo(p, n){
 
 // ---------------- state ----------------
 const LS_KEY = 'ks-daily-agenda-v1';
-const SCHEMA = 15;
+const SCHEMA = 16;
 let S = null;   // {schema, alliances:{name:alliance}, kingdoms:{name:kingdom}, active, updatedAt}
 let curDay = todayUtc();
 let outEdited = false;
@@ -638,8 +638,23 @@ function upgradeState(st){
   if (v <= 11) brewV12(st);
   if (v <= 12) cesaresV13(st);
   if (v <= 13) groupV14(st);
-  footV15(st);
+  if (v <= 14) footV15(st);
+  datesV16(st);
   return true;
+}
+// v15 -> v16: dates seen in game (27/11/2026). K2116: Mystic Divination 27-28/11. K1130: Fishing Tournament 24-26/11.
+// Days are counted from the shared cycle start (Monday 09/11/2026 by default).
+function datesV16(st){
+  const a = dnum((st.shared && st.shared.anchor) || '2026-11-09');
+  const set = (kn, id, iso) => {
+    const k = st.kingdoms && st.kingdoms[kn]; if (!k) return;
+    let e = k.cycle.find(c=>c.id===id);
+    if (!e){ e = clone(defaultKingdom(k.variant||'young').cycle.find(c=>c.id===id)); k.cycle.push(e); }
+    e.start = mod(dnum(iso) - a, Math.max(1, e.every|0)); e.on = true;
+  };
+  set('K2116', 'divination', '2026-11-27');
+  set('K1130', 'fishing', '2026-11-24');
+  st.schema = SCHEMA;
 }
 // v14 -> v15: normal message starts with an empty line; editable "ends today" texts
 function footV15(st){
@@ -647,7 +662,7 @@ function footV15(st){
   o.groupLead = true;
   if (o.endsToday === undefined) o.endsToday = '(* Event ends today.)';
   if (o.endsAt === undefined) o.endsAt = '({stars} Event ends {time}.)';
-  st.schema = SCHEMA;
+  st.schema = 15;
 }
 // v13 -> v14: group chat message (options, short text for the Mobilization tips)
 function groupV14(st){
