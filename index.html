@@ -64,8 +64,9 @@ td input[type=text].nm{width:100%;min-width:130px}
 .fixrow{display:flex;gap:10px;align-items:center}
 .fixrow>.grow{min-width:0}
 .block{background:var(--card2);border-radius:6px;padding:8px;margin:8px 0}
-.block .ruleBox input[type=number]{width:46px}
-.block .ruleBox select{max-width:170px}
+.block .ruleBox input[type=number]{width:56px}
+.block .ruleBox select{max-width:none;min-width:220px}
+@media (max-width:600px){.block .ruleBox input[type=number]{width:46px}.block .ruleBox select{min-width:0;max-width:170px}}
 .evlist label{display:flex;gap:6px;align-items:center;padding:2px 0}
 .tag{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:0 5px;color:var(--muted)}
 .status{font-size:12px;color:var(--muted)}
@@ -88,22 +89,47 @@ a{color:var(--accent)}
 <div class="wrap">
   <h1>Kingshot Daily Agenda</h1>
 
+  <details class="card" data-key="kingdoms">
+    <summary>Kingdoms</summary>
+    <div class="muted" style="margin-bottom:4px">Each kingdom has the dates of its own rotating events; every alliance in it follows them. When you see an event in the game, put the day it starts in "Starts" (any occurrence, past or future); the page repeats it every 7, 14 or 28 days. "Day #" adds "(day #2)" after the name; "max" caps the number.</div>
+    <div id="kingdomList"></div>
+    <div class="sub">New kingdom</div>
+    <div class="row">
+      <span class="muted">#</span><input type="text" id="newKingdomNum" placeholder="1130" inputmode="numeric" style="width:90px">
+      <label class="row" style="gap:4px" title="Generation 4 and later: Champion's Way instead of Desert Trial"><input type="checkbox" id="newKingdomGen4"> Gen 4+</label>
+      <button id="btnAddKingdom">+ Add</button>
+    </div>
+    <div class="err" id="newKingdomErr"></div>
+  </details>
+
+  <details class="card" data-key="alliances">
+    <summary>Alliances</summary>
+    <div class="muted" style="margin-bottom:4px">Each alliance has its own times (Bear Traps, legions…) and belongs to a kingdom, which gives the event dates. Open one to edit it.</div>
+    <div id="allianceList"></div>
+    <div class="sub">New alliance</div>
+    <div class="row">
+      <input type="text" id="newAllianceTag" placeholder="Tag, e.g. VAR" maxlength="3" style="width:110px">
+      <select id="newAllianceKingdom"></select>
+      <button id="btnAddAlliance">+ Add</button>
+    </div>
+    <div class="muted" style="margin-top:4px">The new alliance starts with the times of the alliance chosen at the top.</div>
+    <div class="err" id="newAllianceErr"></div>
+  </details>
+
   <div class="card">
+    <div class="cardhead"><h2 class="grow">Alliance and date</h2></div>
     <div class="row">
       <span class="lbl">Alliance</span>
       <select id="allianceSel" class="grow" title="The alliance this message is for"></select>
     </div>
-    <div class="status" id="syncStatus" style="margin-top:6px">Saved in this browser.</div>
-  </div>
-
-  <div class="card">
-    <div class="row">
+    <div class="row" style="margin-top:8px;flex-wrap:nowrap">
       <button id="prevDay" aria-label="Previous day">◀</button>
-      <input type="date" id="dateInput">
+      <input type="date" id="dateInput" class="grow" style="min-width:0">
       <button id="nextDay" aria-label="Next day">▶</button>
-      <button id="todayBtn">Today (UTC)</button>
+      <button id="todayBtn" title="Today's UTC date">Today</button>
     </div>
     <div class="muted" id="cycleInfo" style="margin-top:6px"></div>
+    <div class="status" id="syncStatus" style="margin-top:4px">Saved in this browser.</div>
   </div>
 
   <div class="card">
@@ -158,36 +184,7 @@ a{color:var(--accent)}
     <textarea id="dayTomorrow" rows="2" placeholder="- 🏯 Swordland Showdown (Registration)"></textarea>
   </details>
 
-  <div class="kgroup">Alliances and kingdoms</div>
-
-  <details class="card" data-key="alliances">
-    <summary>Alliances</summary>
-    <div class="muted" style="margin-bottom:4px">Each alliance has its own times (Bear Traps, legions…) and belongs to a kingdom, which gives the event dates. Open one to edit it.</div>
-    <div id="allianceList"></div>
-    <div class="sub">New alliance</div>
-    <div class="row">
-      <input type="text" id="newAllianceTag" placeholder="Tag, e.g. VAR" maxlength="3" style="width:110px">
-      <select id="newAllianceKingdom"></select>
-      <button id="btnAddAlliance">+ Add</button>
-    </div>
-    <div class="muted" style="margin-top:4px">The new alliance starts with the times of the alliance chosen at the top.</div>
-    <div class="err" id="newAllianceErr"></div>
-  </details>
-
-  <details class="card" data-key="kingdoms">
-    <summary>Kingdoms</summary>
-    <div class="muted" style="margin-bottom:4px">Each kingdom has the dates of its own rotating events; every alliance in it follows them. When you see an event in the game, put the day it starts in "Starts" (any occurrence, past or future); the page repeats it every 7, 14 or 28 days. "Day #" adds "(day #2)" after the name; "max" caps the number.</div>
-    <div id="kingdomList"></div>
-    <div class="sub">New kingdom</div>
-    <div class="row">
-      <span class="muted">#</span><input type="text" id="newKingdomNum" placeholder="1130" inputmode="numeric" style="width:90px">
-      <label class="row" style="gap:4px" title="Generation 4 and later: Champion's Way instead of Desert Trial"><input type="checkbox" id="newKingdomGen4"> Gen 4+</label>
-      <button id="btnAddKingdom">+ Add</button>
-    </div>
-    <div class="err" id="newKingdomErr"></div>
-  </details>
-
-  <div class="kgroup">Shared by all alliances</div>
+  <div class="kgroup">Settings</div>
 
   <details class="card" data-key="layout">
     <summary>Title and layout</summary>
@@ -229,30 +226,31 @@ a{color:var(--accent)}
     <button id="addTrial" style="margin-top:8px">+ Add room</button>
   </details>
 
-  <div class="kgroup">Game events (all kingdoms)</div>
-
-  <details class="card" data-key="fixed">
-    <summary>Fixed events</summary>
-    <div class="muted" style="margin-bottom:8px">Same dates in every kingdom; the dates come from the cycle start. Tick to show an event in the message. Edit only if the game changes something. On the GitHub version these events are updated from the site when a newer list is published (your ticks are kept).</div>
-    <div class="row" style="margin-bottom:8px">
-      <span class="muted">Cycle start</span><b id="anchorText"></b>
-      <button id="anchorEditBtn">Change</button>
-      <span id="anchorEdit" class="row" style="display:none">
-        <input type="date" id="setAnchor">
-        <button data-shift="-7">−7</button><button data-shift="-1">−1</button><button data-shift="1">+1</button><button data-shift="7">+7</button>
-      </span>
-    </div>
-    <div id="fixedList"></div>
-  </details>
-
-  <details class="card" data-key="special">
-    <summary>One-off events</summary>
-    <div class="muted" style="margin-bottom:8px">Events outside the cycle (Fantasy Theater, seasonal events…) in every kingdom. Events of one kingdom only are in its card under Kingdoms.</div>
-    <div class="scroll"><table id="specialShared"></table></div>
-    <div class="row" style="margin-top:8px">
-      <select id="specialPick"></select>
-      <button id="addSpecialShared">+ Add</button>
-    </div>
+  <details class="card" data-key="game">
+    <summary>Game events</summary>
+    <div class="muted" style="margin-bottom:4px">Events with the same dates in every kingdom. Events of one kingdom are in its card under Kingdoms.</div>
+    <details class="card item" data-key="fixed">
+      <summary>Fixed events</summary>
+      <div class="muted" style="margin-bottom:8px">Same dates in every kingdom; the dates come from the cycle start. Tick to show an event in the message. Edit only if the game changes something. On the GitHub version these events are updated from the site when a newer list is published (your ticks are kept).</div>
+      <div class="row" style="margin-bottom:8px">
+        <span class="muted">Cycle start</span><b id="anchorText"></b>
+        <button id="anchorEditBtn">Change</button>
+        <span id="anchorEdit" class="row" style="display:none">
+          <input type="date" id="setAnchor">
+          <button data-shift="-7">−7</button><button data-shift="-1">−1</button><button data-shift="1">+1</button><button data-shift="7">+7</button>
+        </span>
+      </div>
+      <div id="fixedList"></div>
+    </details>
+    <details class="card item" data-key="special">
+      <summary>One-off events</summary>
+      <div class="muted" style="margin-bottom:8px">Events outside the cycle (Fantasy Theater, seasonal events…) in every kingdom.</div>
+      <div class="scroll"><table id="specialShared"></table></div>
+      <div class="row" style="margin-top:8px">
+        <select id="specialPick"></select>
+        <button id="addSpecialShared">+ Add</button>
+      </div>
+    </details>
   </details>
 
   <details class="card" data-key="backup">
@@ -662,10 +660,10 @@ let docRef = null, saveTimer = null, saving = false, pendingSave = false;
 
 function freshState(){
   return {
-    schema:SCHEMA, updatedAt:0, active:'My alliance',
+    schema:SCHEMA, updatedAt:0, active:'AAA',
     shared: defaultShared(),
-    kingdoms:{'My kingdom':defaultKingdom('young')},
-    alliances:{'My alliance':defaultAlliance('My kingdom')},
+    kingdoms:{'#0000':defaultKingdom('young')},
+    alliances:{'AAA':defaultAlliance('#0000')},
     global: defaultGlobal(),
   };
 }
@@ -892,7 +890,7 @@ function fixup(){
     if (Array.isArray(dg[key]) ? !Array.isArray(S.global[key]) : S.global[key] === undefined) S.global[key] = dg[key];
   }
   S.global.opts = Object.assign({}, dg.opts, S.global.opts||{});
-  if (!S.kingdoms || !Object.keys(S.kingdoms).length) S.kingdoms = {'K2116':defaultKingdom('young')};
+  if (!S.kingdoms || !Object.keys(S.kingdoms).length) S.kingdoms = {'#0000':defaultKingdom('young')};
   for (const n in S.alliances){
     const a = S.alliances[n], d = defaultAlliance(a.kingdom);
     for (const key of Object.keys(d)) if (a[key] === undefined) a[key] = d[key];
