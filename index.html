@@ -79,6 +79,7 @@ td input[type=text].nm{width:100%;min-width:130px}
     <div class="row" style="margin-top:8px">
       <span class="lbl">Kingdom</span>
       <select id="kingdomSel" class="grow"></select>
+      <label class="row" style="gap:4px" title="Generation 4 and later: Champion's Way instead of Desert Trial, Mystic Divination instead of Fishing Tournament"><input type="checkbox" id="optGen4"> Gen 4+</label>
       <button id="btnNewKingdom" title="Copy this kingdom's events into a new kingdom">New</button>
       <button id="btnRenameKingdom">Rename</button>
       <button id="btnDeleteKingdom" class="danger">Delete</button>
@@ -1178,6 +1179,7 @@ function renderSelectors(){
   const used = Object.values(S.alliances).some(a=>a!==A() && a.kingdom===A().kingdom);
   $('btnDeleteKingdom').disabled = Object.keys(S.kingdoms).length<2 || used;
   $('btnDeleteKingdom').title = used ? 'Other alliances use this kingdom' : '';
+  $('optGen4').checked = K().variant === 'old';
 }
 function renderAll(){
   renderSelectors(); renderGeneral(); renderDate(); renderBattles(); renderDay(); renderFixed(); renderCycle(); renderSpecial(); renderTimed(); renderNotes(); renderPresets(); renderTrials();
@@ -1254,6 +1256,18 @@ let nameMode=null;
 function askName(mode, initial){ nameMode=mode; $('nameRow').style.display='flex'; $('nameInput').value=initial; $('nameInput').focus(); }
 $('allianceSel').onchange=e=>{ S.active=e.target.value; persist(); renderAll(); };
 $('kingdomSel').onchange=e=>{ A().kingdom=e.target.value; persist(); renderAll(); };
+// Gen 4+: Champion's Way replaces Desert Trial and Mystic Divination replaces Fishing Tournament (dates and other events kept)
+function setGeneration(k, old){
+  k.variant = old ? 'old' : 'young';
+  const defs = defaultKingdom(k.variant).cycle;
+  for (const id of ['desert','fishing','divination']) if (!k.cycle.some(c=>c.id===id)) k.cycle.push(clone(defs.find(c=>c.id===id)));
+  const d = k.cycle.find(c=>c.id==='desert');
+  if (old && d.name==='Desert Trial'){ d.name="Champion's Way"; d.emoji='🏆'; }
+  if (!old && d.name==="Champion's Way"){ d.name='Desert Trial'; d.emoji='🐺'; }
+  k.cycle.find(c=>c.id==='fishing').on = !old;
+  k.cycle.find(c=>c.id==='divination').on = old;
+}
+$('optGen4').onchange=e=>{ setGeneration(K(), e.target.checked); persist(); renderAll(); };
 $('btnNewAlliance').onclick=()=>askName('newA', '');
 $('btnRenameAlliance').onclick=()=>askName('renA', S.active);
 $('btnNewKingdom').onclick=()=>askName('newK', '');
