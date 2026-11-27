@@ -79,7 +79,7 @@ td input[type=text].nm{width:100%;min-width:130px}
     <div class="row" style="margin-top:8px">
       <span class="lbl">Kingdom</span>
       <select id="kingdomSel" class="grow"></select>
-      <label class="row" style="gap:4px" title="Generation 4 and later: Champion's Way instead of Desert Trial, Mystic Divination instead of Fishing Tournament"><input type="checkbox" id="optGen4"> Gen 4+</label>
+      <label class="row" style="gap:4px" title="Generation 4 and later: Champion's Way instead of Desert Trial"><input type="checkbox" id="optGen4"> Gen 4+</label>
       <button id="btnNewKingdom" title="Copy this kingdom's events into a new kingdom">New</button>
       <button id="btnRenameKingdom">Rename</button>
       <button id="btnDeleteKingdom" class="danger">Delete</button>
@@ -300,12 +300,12 @@ function allDefaultEvents(variant){
       C('swordland','🏯','Swordland Showdown',0,7,14,0),
       C('championship','🚩','Alliance Championship',0,7,7,0),
       C('armament1',G.armament,'Armament Competition',0,2,14,1),
-      C('fishing','🎣','Fishing Tournament',1,3,28,old?0:1),
+      C('fishing','🎣','Fishing Tournament',1,3,28,1),
       C('sanctuary','🏰','Sanctuary Battle',1,4,7,0),
       C('desert',old?'🏆':'🐺',old?"Champion's Way":'Desert Trial',2,3,14,1),
       C('officer1','👊','Officer Project',2,2,14,1),
       C('armament2',G.armament,'Armament Competition',4,2,14,1),
-      C('divination','🔮','Mystic Divination',4,2,28,old?1:0),
+      C('divination','🔮','Mystic Divination',4,2,28,1),
       C('officer2','👊','Officer Project',6,2,14,1),
       C('hallheroes','🦸','Hall of Heroes',6,3,7,0),
       C('sg','💪','Strongest Governor',7,7,28,1),
@@ -1256,16 +1256,13 @@ let nameMode=null;
 function askName(mode, initial){ nameMode=mode; $('nameRow').style.display='flex'; $('nameInput').value=initial; $('nameInput').focus(); }
 $('allianceSel').onchange=e=>{ S.active=e.target.value; persist(); renderAll(); };
 $('kingdomSel').onchange=e=>{ A().kingdom=e.target.value; persist(); renderAll(); };
-// Gen 4+: Champion's Way replaces Desert Trial and Mystic Divination replaces Fishing Tournament (dates and other events kept)
+// Gen 4+: Champion's Way replaces Desert Trial (same dates). Fishing Tournament and Mystic Divination run in both.
 function setGeneration(k, old){
   k.variant = old ? 'old' : 'young';
-  const defs = defaultKingdom(k.variant).cycle;
-  for (const id of ['desert','fishing','divination']) if (!k.cycle.some(c=>c.id===id)) k.cycle.push(clone(defs.find(c=>c.id===id)));
+  if (!k.cycle.some(c=>c.id==='desert')) k.cycle.push(clone(defaultKingdom(k.variant).cycle.find(c=>c.id==='desert')));
   const d = k.cycle.find(c=>c.id==='desert');
   if (old && d.name==='Desert Trial'){ d.name="Champion's Way"; d.emoji='🏆'; }
   if (!old && d.name==="Champion's Way"){ d.name='Desert Trial'; d.emoji='🐺'; }
-  k.cycle.find(c=>c.id==='fishing').on = !old;
-  k.cycle.find(c=>c.id==='divination').on = old;
 }
 $('optGen4').onchange=e=>{ setGeneration(K(), e.target.checked); persist(); renderAll(); };
 $('btnNewAlliance').onclick=()=>askName('newA', '');
