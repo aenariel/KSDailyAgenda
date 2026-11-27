@@ -285,6 +285,11 @@ function clone(o){ return JSON.parse(JSON.stringify(o)); }
 
 const G = {brawl:'', viking:'', roulette:'', armament:'', bounty:''};
 const BATTLE = {S:{label:'Sanctuary', count:12, emoji:'🏰'}, F:{label:'Fortress', count:4, emoji:'🏰'}};
+// Sanctuary/Fortress battles are on Fridays. At sign-up officers vote 3 slots; the most-voted slot of the registered
+// alliances sets each structure's start time, so only these hours are possible.
+const BATTLE_SLOTS = [3, 9, 13, 14, 17];
+const BATTLE_TBD = 'Sanctuary & Fortress battles: time TBD';
+function isBattleDay(n){ return wday(n) === 4; }
 
 // Events that run on the same dates in every kingdom (after its first KvK). Everything else is per kingdom.
 const GLOBAL_IDS = ['brawl','merchant','swordland','championship','armament1','armament2','officer1','officer2','hallheroes','sanctuary','beasts',
@@ -517,6 +522,7 @@ function collectDay(p, n){
   }
   for (const t of timedFor(p, n)) if (!excl.has('t:'+t.id)) timedLines.push({h:hourOf(t.time), s:line(t.emoji, t.label + (t.time ? ': ' + t.time : ''))});
   for (const b of battlesFor(p, n)) timedLines.push({h:b.hour*60, s:battleLine(b)});
+  if (isBattleDay(n) && !battlesFor(p, n).length) timedLines.push({h:9998, s:line(BATTLE.S.emoji, BATTLE_TBD)});
   for (const s of extraLines(day.today)) timedLines.push({h:lineHour(s), s});
   timedLines.sort((a,b)=>a.h-b.h);
   today.push(...timedLines.map(x=>x.s));
@@ -545,6 +551,7 @@ function collectDay(p, n){
   }
   if (p.opts.timedTomorrow) tomTimed.push(...groupedTimed(timedFor(p, n+1)));
   for (const b of battlesFor(p, n+1)) tomTimed.push({h:b.hour*60, s:battleLine(b)});
+  if (isBattleDay(n+1) && !battlesFor(p, n+1).length) tomTimed.push({h:9998, s:line(BATTLE.S.emoji, BATTLE_TBD)});
   tomTimed.sort((a,b)=>a.h-b.h);
   tom.push(...tomTimed.map(x=>x.s));
   tom.push(...extraLines(day.tomorrow));
@@ -596,7 +603,7 @@ function cycleDayInfo(p, n){
 
 // ---------------- state ----------------
 const LS_KEY = 'ks-daily-agenda-v1';
-const SCHEMA = 16;
+const SCHEMA = 17;
 let S = null;   // {schema, alliances:{name:alliance}, kingdoms:{name:kingdom}, active, updatedAt}
 let curDay = todayUtc();
 let outEdited = false;
@@ -639,11 +646,22 @@ function upgradeState(st){
   if (v <= 12) cesaresV13(st);
   if (v <= 13) groupV14(st);
   if (v <= 14) footV15(st);
-  datesV16(st);
+  if (v <= 15) datesV16(st);
+  hashKingdomsV17(st);
   return true;
 }
 // v15 -> v16: dates seen in game (27/11/2026). K2116: Mystic Divination 27-28/11. K1130: Fishing Tournament 24-26/11.
 // Days are counted from the shared cycle start (Monday 09/11/2026 by default).
+// v16 -> v17: kingdoms are named by number with '#' (K1130 or 1130 -> #1130), as in KSCompanion
+function hashKingdomsV17(st){
+  for (const kn of Object.keys(st.kingdoms||{})){
+    const m = kn.match(/^\s*[#Kk]?\s*(\d+)\s*$/); if (!m) continue;
+    const nn = '#' + m[1]; if (nn === kn || st.kingdoms[nn]) continue;
+    st.kingdoms[nn] = st.kingdoms[kn]; delete st.kingdoms[kn];
+    for (const a of Object.values(st.alliances||{})) if (a.kingdom === kn) a.kingdom = nn;
+  }
+  st.schema = SCHEMA;
+}
 function datesV16(st){
   const a = dnum((st.shared && st.shared.anchor) || '2026-11-09');
   const set = (kn, id, iso) => {
@@ -921,7 +939,7 @@ function renderBattles(){
   $('segToday').className = battleTarget===0 ? 'on' : ''; $('segTomorrow').className = battleTarget===1 ? 'on' : '';
   const v = V(), sanct = v.cycle.find(c=>c.id==='sanctuary');
   const h = sanct ? cycleHit(v, sanct, n) : null;
-  $('battleHint').textContent = h ? 'Sanctuary Battle runs ' + ddm(h.start) + '–' + ddm(h.end) : '';
+  $('battleHint').textContent = (isBattleDay(n) ? 'Battle day. ' : 'Battles are on Fridays. ') + 'Hours: the most-voted slot (3, 9, 13, 14 or 17 UTC).';
   for (const type of ['S','F']){
     const box = $('chips'+type); box.innerHTML='';
     for (let i=1; i<=BATTLE[type].count; i++){
@@ -929,7 +947,7 @@ function renderBattles(){
       const c = document.createElement('span'); c.className='chip sq'+(on?' on':''); c.textContent='#'+i;
       c.onclick = ()=>{
         if (on) a.battles = a.battles.filter(b=>!(b.date===d && b.type===type && b.num===i));
-        else { const last = [...a.battles].reverse().find(b=>b.type===type); a.battles.push({id:uid(), type, num:i, date:d, hour: last ? last.hour : 12}); }
+        else { const last = [...a.battles].reverse().find(b=>b.type===type && BATTLE_SLOTS.includes(b.hour)); a.battles.push({id:uid(), type, num:i, date:d, hour: last ? last.hour : 13}); }
         changed(); renderBattles();
       };
       box.appendChild(c);
@@ -942,7 +960,8 @@ function renderBattles(){
     const r = document.createElement('div'); r.className='battle';
     const s = document.createElement('span'); s.textContent = BATTLE[b.type].emoji + ' ' + BATTLE[b.type].label + ' #' + b.num; s.style.minWidth='130px';
     const sel = document.createElement('select');
-    for (let hh=0; hh<24; hh++){ const o=document.createElement('option'); o.value=hh; o.textContent=String(hh).padStart(2,'0')+':00 UTC'; if(hh===b.hour) o.selected=true; sel.appendChild(o); }
+    const hours = BATTLE_SLOTS.includes(b.hour) ? BATTLE_SLOTS : [...BATTLE_SLOTS, b.hour].sort((x,y)=>x-y);   // keep an older hour visible
+    for (const hh of hours){ const o=document.createElement('option'); o.value=hh; o.textContent=String(hh).padStart(2,'0')+':00 UTC'; if(hh===b.hour) o.selected=true; sel.appendChild(o); }
     sel.onchange = ()=>{ b.hour = +sel.value; changed(); renderBattles(); };
     const x = btn('✕', ()=>{ a.battles = a.battles.filter(q=>q!==b); changed(); renderBattles(); }, 'danger');
     r.append(s, sel, x); list.appendChild(r);
@@ -1282,7 +1301,7 @@ function setGeneration(k, old){
 $('optGen4').onchange=e=>{ setGeneration(K(), e.target.checked); persist(); renderAll(); };
 $('btnNewAlliance').onclick=()=>askName('newA', '');
 $('btnRenameAlliance').onclick=()=>askName('renA', S.active);
-$('btnNewKingdom').onclick=()=>askName('newK', '');
+$('btnNewKingdom').onclick=()=>askName('newK', '#');
 $('btnRenameKingdom').onclick=()=>askName('renK', A().kingdom);
 $('nameCancel').onclick=()=>{ $('nameRow').style.display='none'; };
 $('nameOk').onclick=()=>{
@@ -1292,10 +1311,13 @@ $('nameOk').onclick=()=>{
     if (nameMode==='newA'){ const c=clone(A()); c.days={}; c.battles=[]; S.alliances[n]=c; S.active=n; }
     else if (n!==S.active){ S.alliances[n]=S.alliances[S.active]; delete S.alliances[S.active]; S.active=n; }
   } else {
-    const cur=A().kingdom;
-    if (S.kingdoms[n] && n!==cur){ $('nameInput').value=n+' (2)'; return; }
-    if (nameMode==='newK'){ S.kingdoms[n]=clone(K()); A().kingdom=n; }
-    else if (n!==cur){ S.kingdoms[n]=S.kingdoms[cur]; delete S.kingdoms[cur]; for (const a of Object.values(S.alliances)) if (a.kingdom===cur) a.kingdom=n; }
+    // Kingdoms are numbers, stored as #1130
+    const m = n.match(/^[#Kk]?\s*(\d+)$/);
+    if (!m){ $('nameInput').value=''; $('nameInput').placeholder='Kingdom number, e.g. 1130'; return; }
+    const kn = '#' + m[1], cur=A().kingdom;
+    if (S.kingdoms[kn] && kn!==cur){ $('nameInput').value=''; $('nameInput').placeholder=kn+' already exists'; return; }
+    if (nameMode==='newK'){ S.kingdoms[kn]=clone(K()); A().kingdom=kn; }
+    else if (kn!==cur){ S.kingdoms[kn]=S.kingdoms[cur]; delete S.kingdoms[cur]; for (const a of Object.values(S.alliances)) if (a.kingdom===cur) a.kingdom=kn; }
   }
   $('nameRow').style.display='none'; persist(); renderAll();
 };

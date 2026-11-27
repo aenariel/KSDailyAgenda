@@ -16,3 +16,5 @@ Live page: https://aenariel.github.io/KSDailyAgenda/
 
 - Dates use the game's UTC day. The cycle start (`anchor`) is the Monday of an Alliance Brawl week.
 - Kingdom-specific events (Fishing Tournament, Mystic Divination, Desert Trial / Champion's Way…) are edited in the page and stay local.
+- Kingdoms are named by number with `#` (`#1130`); older names like `K1130` are renamed when the page opens.
+- Sanctuary & Fortress battles are on Fridays at the slot most voted at sign-up: 3, 9, 13, 14 or 17 UTC. Until a battle is picked, Friday shows "time TBD".
