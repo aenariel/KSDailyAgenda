@@ -18,3 +18,13 @@ Live page: https://aenariel.github.io/KSDailyAgenda/
 - Kingdom-specific events (Fishing Tournament, Mystic Divination, Desert Trial / Champion's Way…) are edited in the page and stay local.
 - Kingdoms are named by number with `#` (`#1130`); older names like `K1130` are renamed when the page opens.
 - Sanctuary & Fortress battles are on Fridays at the slot most voted at sign-up: 3, 9, 13, 14 or 17 UTC. Until a battle is picked, Friday shows "time TBD".
+
+## events.json
+
+Read by this page (GitHub version) and by KSCompanion; a higher `version` replaces the old content (each person's on/off ticks of the fixed events are kept).
+
+- `shared.anchor`, `shared.cycle`, `shared.special`: the fixed events. Cycle options: `days` (days of the event to show, empty = all), `lastDay` (mark the last day), `highlight` (stands out in KSCompanion).
+- `shared.trials`: Mystic Trials with ratio and weekdays (0 = Monday). Replaces the page's list.
+- `shared.slots`: possible hours (UTC) of `eternity` (Eternity's Reach) and `battles` (Friday Sanctuary/Fortress).
+- `shared.legions`: per legion event, registration days (`regFrom`–`regTo`) and `battleDay`, counted in days of the event `ev`. Applied to the legion times and to the registration reminders.
+

@@ -193,6 +193,7 @@ td input[type=text].nm{width:100%;min-width:130px}
 
   <details class="card">
     <summary>Mystic Trial ratios</summary>
+    <div class="muted" style="margin-bottom:8px">On the GitHub version this list is replaced when a newer events.json is published.</div>
     <div class="scroll"><table id="trialTable"></table></div>
     <button id="addTrial" style="margin-top:8px">Add room</button>
   </details>
@@ -295,10 +296,17 @@ function isBattleDay(n){ return wday(n) === 4; }
 const GLOBAL_IDS = ['brawl','merchant','swordland','championship','armament1','armament2','officer1','officer2','hallheroes','sanctuary','beasts',
   'sg','glaives','vikings','eternity','roulette','brew','allout','castle','mobilization','triclash','kvkmatch','kvkprep','kvkbattle'];
 const DAYNUM_IDS = ['brawl','sg','kvkprep'];
+// Per-event options (also in events.json): days = which days of the event to show (empty = all);
+// lastDay = mark the last day (false: no "ends today" star); highlight = stands out in KSCompanion.
+const EVENT_DAYS = {vikings:[1,3]};
+const NO_LAST_DAY = ['kvkmatch'];
+const HIGHLIGHT_IDS = ['castle','kvkmatch','kvkprep','kvkbattle'];
+function eventOptions(id){ return {days:(EVENT_DAYS[id]||[]).slice(), lastDay:!NO_LAST_DAY.includes(id), highlight:HIGHLIGHT_IDS.includes(id)}; }
+function showsOn(ev, dayIdx){ return !(ev.days && ev.days.length) || ev.days.includes(dayIdx); }
 // variant: 'young' = kingdom before Gen 4 (Desert Trial), 'old' = Gen 4+ (Champion's Way)
 function allDefaultEvents(variant){
   const old = variant === 'old';
-  const C = (id,emoji,name,start,len,every,on)=>({id,emoji,name,start,len,every,on:!!on,showDay:DAYNUM_IDS.includes(id),maxDay:{brawl:6,kvkprep:5}[id]||0, endTime:{brawl:'12 UTC',kvkprep:'10 UTC'}[id]||'', startTime:{castle:'12 UTC',kvkbattle:'12 UTC'}[id]||''});
+  const C = (id,emoji,name,start,len,every,on)=>Object.assign({id,emoji,name,start,len,every,on:!!on,showDay:DAYNUM_IDS.includes(id),maxDay:{brawl:6,kvkprep:5}[id]||0, endTime:{brawl:'12 UTC',kvkprep:'10 UTC'}[id]||'', startTime:{castle:'12 UTC',kvkbattle:'12 UTC'}[id]||''}, eventOptions(id));
   return [
       C('brawl','🌟 '+G.brawl,'Alliance Brawl',0,7,28,1),
       C('merchant','📦','Merchant Empire',0,7,28,1),
@@ -331,10 +339,29 @@ function allDefaultEvents(variant){
   ];
 }
 const ORDER = allDefaultEvents('young').map(e=>e.id);
+// Game settings that events.json can also publish (shared.slots, shared.legions, shared.trials)
+const ETERNITY_SLOTS = [2, 5, 11, 14, 16, 18, 21];
+const DEFAULT_LEGIONS = [
+  {group:'Swordland Showdown', ev:'swordland', regFrom:3, regTo:4, battleDay:7},
+  {group:'Tri-Alliance Clash', ev:'triclash', regFrom:3, regTo:4, battleDay:6},
+];
 function defaultShared(){
   return {anchor:'2026-11-09', cycle: allDefaultEvents('young').filter(e=>GLOBAL_IDS.includes(e.id)),
-    special:[{id:'fantasy1',on:true,showDay:false,emoji:'✨',name:'Fantasy Theater',from:'2026-11-09',to:'2026-11-15'}]};
+    special:[{id:'fantasy1',on:true,showDay:false,emoji:'✨',name:'Fantasy Theater',from:'2026-11-09',to:'2026-11-15'}],
+    slots:{eternity:ETERNITY_SLOTS.slice(), battles:BATTLE_SLOTS.slice()}, legions:clone(DEFAULT_LEGIONS)};
 }
+/** Applies events.json game settings to the saved data: Mystic Trials and legion registration/battle days. */
+function applySharedConfig(st){
+  const sh = st.shared || {};
+  if (Array.isArray(sh.trials) && sh.trials.length && st.global) st.global.trials = sh.trials.map(t=>Object.assign({id:uid()}, clone(t)));
+  for (const L of (sh.legions || [])){
+    for (const a of Object.values(st.alliances || {})) for (const t of (a.timed || []))
+      if (t.group === L.group && t.rule && t.rule.type === 'event'){ t.rule.ev = L.ev; t.rule.from = L.battleDay; t.rule.to = L.battleDay; }
+    const reg = st.global && (st.global.notes || []).find(x=>x.id === (L.ev === 'triclash' ? 'sltri-reg' : 'sl-reg'));
+    if (reg && reg.rule){ reg.rule.from = L.regFrom; reg.rule.to = L.regTo; }
+  }
+}
+function battleSlots(){ const sl = S && S.shared && S.shared.slots; return (sl && Array.isArray(sl.battles) && sl.battles.length) ? sl.battles : BATTLE_SLOTS; }
 function defaultKingdom(variant){
   const old = variant === 'old';
   return {
@@ -465,8 +492,8 @@ function eventsFor(p, n){
   const list = [];
   for (const ev of p.cycle){ if (!ev.on) continue;
     const h = cycleHit(p, ev, n), t = cycleHit(p, ev, n+1);
-    if (h) list.push({key:'c:'+ev.id, emoji:ev.emoji, name:ev.name, start:h.start, end:h.end, dayIdx:h.dayIdx, showDay:!!ev.showDay, maxDay:ev.maxDay|0, endTime:ev.endTime||'', startTime:ev.startTime||'', kind:h.start===n?'starts':'ongoing'});
-    else if (t && t.start===n+1) list.push({key:'c:'+ev.id, emoji:ev.emoji, name:ev.name, start:t.start, end:t.end, startTime:ev.startTime||'', kind:'tomorrow'});
+    if (h){ if (showsOn(ev, h.dayIdx)) list.push({key:'c:'+ev.id, emoji:ev.emoji, name:ev.name, start:h.start, end:h.end, dayIdx:h.dayIdx, showDay:!!ev.showDay, maxDay:ev.maxDay|0, endTime:ev.endTime||'', startTime:ev.startTime||'', lastDay:ev.lastDay!==false, kind:h.start===n?'starts':'ongoing'}); }
+    else if (t && t.start===n+1 && showsOn(ev, 1)) list.push({key:'c:'+ev.id, emoji:ev.emoji, name:ev.name, start:t.start, end:t.end, startTime:ev.startTime||'', kind:'tomorrow'});
   }
   for (const sp of p.special){ if (!sp.on) continue;
     const h = specialHit(sp, n), t = specialHit(sp, n+1);
@@ -532,7 +559,7 @@ function collectDay(p, n){
   const ongoing = [], ending = [];
   for (const e of evs){
     if (e.kind==='ongoing' || (e.kind==='starts' && !p.opts.startTodayInToday)){
-      const ends = e.end===n && e.start!==n;
+      const ends = e.end===n && e.start!==n && e.lastDay!==false;
       if (!ends){ ongoing.push(line(e.emoji, evName(e))); continue; }
       const t = (e.endTime||'').trim();
       if (!t){ star = true; ending.push(line(e.emoji, evName(e)) + '*'); continue; }
@@ -603,7 +630,7 @@ function cycleDayInfo(p, n){
 
 // ---------------- state ----------------
 const LS_KEY = 'ks-daily-agenda-v1';
-const SCHEMA = 17;
+const SCHEMA = 18;
 let S = null;   // {schema, alliances:{name:alliance}, kingdoms:{name:kingdom}, active, updatedAt}
 let curDay = todayUtc();
 let outEdited = false;
@@ -647,11 +674,23 @@ function upgradeState(st){
   if (v <= 13) groupV14(st);
   if (v <= 14) footV15(st);
   if (v <= 15) datesV16(st);
-  hashKingdomsV17(st);
+  if (v <= 16) hashKingdomsV17(st);
+  optionsV18(st);
   return true;
 }
 // v15 -> v16: dates seen in game (27/11/2026). K2116: Mystic Divination 27-28/11. K1130: Fishing Tournament 24-26/11.
 // Days are counted from the shared cycle start (Monday 09/11/2026 by default).
+// v17 -> v18: per-event options (days to show, last-day mark, highlight) with their defaults
+function optionsV18(st){
+  const lists = [st.shared && st.shared.cycle, ...Object.values(st.kingdoms||{}).map(k=>k.cycle)];
+  for (const list of lists) for (const ev of (list||[])){
+    const d = eventOptions(ev.id);
+    if (ev.days === undefined) ev.days = d.days;
+    if (ev.lastDay === undefined) ev.lastDay = d.lastDay;
+    if (ev.highlight === undefined) ev.highlight = d.highlight;
+  }
+  st.schema = SCHEMA;
+}
 // v16 -> v17: kingdoms are named by number with '#' (K1130 or 1130 -> #1130), as in KSCompanion
 function hashKingdomsV17(st){
   for (const kn of Object.keys(st.kingdoms||{})){
@@ -939,7 +978,7 @@ function renderBattles(){
   $('segToday').className = battleTarget===0 ? 'on' : ''; $('segTomorrow').className = battleTarget===1 ? 'on' : '';
   const v = V(), sanct = v.cycle.find(c=>c.id==='sanctuary');
   const h = sanct ? cycleHit(v, sanct, n) : null;
-  $('battleHint').textContent = (isBattleDay(n) ? 'Battle day. ' : 'Battles are on Fridays. ') + 'Hours: the most-voted slot (3, 9, 13, 14 or 17 UTC).';
+  $('battleHint').textContent = (isBattleDay(n) ? 'Battle day. ' : 'Battles are on Fridays. ') + 'Hours: the most-voted slot (' + battleSlots().join(', ') + ' UTC).';
   for (const type of ['S','F']){
     const box = $('chips'+type); box.innerHTML='';
     for (let i=1; i<=BATTLE[type].count; i++){
@@ -947,7 +986,7 @@ function renderBattles(){
       const c = document.createElement('span'); c.className='chip sq'+(on?' on':''); c.textContent='#'+i;
       c.onclick = ()=>{
         if (on) a.battles = a.battles.filter(b=>!(b.date===d && b.type===type && b.num===i));
-        else { const last = [...a.battles].reverse().find(b=>b.type===type && BATTLE_SLOTS.includes(b.hour)); a.battles.push({id:uid(), type, num:i, date:d, hour: last ? last.hour : 13}); }
+        else { const slots = battleSlots(), last = [...a.battles].reverse().find(b=>b.type===type && slots.includes(b.hour)); a.battles.push({id:uid(), type, num:i, date:d, hour: last ? last.hour : (slots.includes(13) ? 13 : slots[0])}); }
         changed(); renderBattles();
       };
       box.appendChild(c);
@@ -960,7 +999,7 @@ function renderBattles(){
     const r = document.createElement('div'); r.className='battle';
     const s = document.createElement('span'); s.textContent = BATTLE[b.type].emoji + ' ' + BATTLE[b.type].label + ' #' + b.num; s.style.minWidth='130px';
     const sel = document.createElement('select');
-    const hours = BATTLE_SLOTS.includes(b.hour) ? BATTLE_SLOTS : [...BATTLE_SLOTS, b.hour].sort((x,y)=>x-y);   // keep an older hour visible
+    const slots = battleSlots(), hours = slots.includes(b.hour) ? slots : [...slots, b.hour].sort((x,y)=>x-y);   // keep an older hour visible
     for (const hh of hours){ const o=document.createElement('option'); o.value=hh; o.textContent=String(hh).padStart(2,'0')+':00 UTC'; if(hh===b.hour) o.selected=true; sel.appendChild(o); }
     sel.onchange = ()=>{ b.hour = +sel.value; changed(); renderBattles(); };
     const x = btn('✕', ()=>{ a.battles = a.battles.filter(q=>q!==b); changed(); renderBattles(); }, 'danger');
@@ -1034,7 +1073,10 @@ function cycleEditors(ev, onDates){
   const maxInp = inp('number', ev.maxDay||'', '', x=>{ev.maxDay=Math.max(0,x|0); settingsChanged();}); maxInp.placeholder='max'; maxInp.style.width='52px';
   const endInp = inp('text', ev.endTime||'', 'emo', x=>{ev.endTime=x.trim(); settingsChanged();}); endInp.placeholder='e.g. 12 UTC'; endInp.style.width='80px'; endInp.title='Hour the last day ends, if not midnight';
   const timeInp = inp('text', ev.startTime||'', 'emo', x=>{ev.startTime=x.trim(); settingsChanged();}); timeInp.placeholder='e.g. 12 UTC'; timeInp.style.width='80px'; timeInp.title='Start hour, for one-day events such as Castle Battle';
-  return {startInp, lenInp, sel, dayCb, maxInp, endInp, timeInp};
+  const daysInp = inp('text', (ev.days||[]).join(','), 'emo', x=>{ ev.days = String(x).split(/[ ,;]+/).map(v=>v|0).filter(v=>v>0); settingsChanged(); });
+  daysInp.placeholder='all'; daysInp.style.width='62px'; daysInp.title='Days of the event to show, e.g. 1,3 (empty = every day)';
+  const lastCb = inp('checkbox', ev.lastDay!==false, '', x=>{ ev.lastDay=x; settingsChanged(); }); lastCb.title='Mark the last day (ends-today star)';
+  return {startInp, lenInp, sel, dayCb, maxInp, endInp, timeInp, daysInp, lastCb};
 }
 const editingFixed = new Set();
 function renderFixed(){
@@ -1057,7 +1099,8 @@ function renderFixed(){
       const lab=t=>{ const l=document.createElement('span'); l.className='muted'; l.textContent=t; return l; };
       ed.append(lab('Icon'), inp('text', ev.emoji, 'emo', x=>{ev.emoji=x; settingsChanged();}),
         lab('Name'), inp('text', ev.name, 'nm', x=>{ev.name=x; settingsChanged();}),
-        lab('Starts'), e.startInp, lab('Days'), e.lenInp, lab('Every'), e.sel, lab('Day #'), e.dayCb, e.maxInp, lab('Starts at'), e.timeInp, lab('Ends at'), e.endInp);
+        lab('Starts'), e.startInp, lab('Days'), e.lenInp, lab('Every'), e.sel, lab('Day #'), e.dayCb, e.maxInp, lab('Starts at'), e.timeInp, lab('Ends at'), e.endInp,
+        lab('Show on days'), e.daysInp, lab('Last day'), e.lastCb);
       ed.querySelectorAll('input.emo').forEach(x=>x.style.width='62px');
       wrap.appendChild(ed);
     }
@@ -1066,7 +1109,7 @@ function renderFixed(){
 }
 function renderCycle(){
   const tb=$('cycleTable'); tb.innerHTML='';
-  tb.appendChild(th('On','Icon','Event','Starts','Days','Every','Dates','Day #','Starts at','Ends at',''));
+  tb.appendChild(th('On','Icon','Event','Starts','Days','Every','Dates','Day #','Starts at','Ends at','Show on days','Last day',''));
   const k=K();
   for (const ev of k.cycle.slice().sort((x,y)=>orderOf(x.id)-orderOf(y.id))){
     const r=document.createElement('tr');
@@ -1078,12 +1121,12 @@ function renderCycle(){
       td(inp('checkbox', ev.on, '', x=>{ev.on=x; settingsChanged();})),
       td(inp('text', ev.emoji, 'emo', x=>{ev.emoji=x; settingsChanged();})),
       td(inp('text', ev.name, 'nm', x=>{ev.name=x; settingsChanged();})),
-      td(e.startInp), td(e.lenInp), td(e.sel), td(dates), td(e.dayCb, e.maxInp), td(e.timeInp), td(e.endInp),
+      td(e.startInp), td(e.lenInp), td(e.sel), td(dates), td(e.dayCb, e.maxInp), td(e.timeInp), td(e.endInp), td(e.daysInp), td(e.lastCb),
       td(btn('✕', ()=>{ k.cycle=k.cycle.filter(x=>x!==ev); settingsChanged(); renderCycle(); renderTimed(); renderNotes(); }, 'danger'))
     );
     tb.appendChild(r);
   }
-  if (!k.cycle.length){ const r=document.createElement('tr'); const c=document.createElement('td'); c.colSpan=11; c.className='muted'; c.textContent='None yet.'; r.appendChild(c); tb.appendChild(r); }
+  if (!k.cycle.length){ const r=document.createElement('tr'); const c=document.createElement('td'); c.colSpan=13; c.className='muted'; c.textContent='None yet.'; r.appendChild(c); tb.appendChild(r); }
 }
 function specialTable(tb, owner){
   tb.innerHTML='';
@@ -1393,7 +1436,7 @@ async function loadSharedFile(){
     // keep each person's own on/off choices; everything else comes from the file
     const onOff = {}; for (const c of (S.shared && S.shared.cycle) || []) onOff[c.id] = c.on;
     for (const c of f.shared.cycle) if (onOff[c.id] !== undefined) c.on = onOff[c.id];
-    S.shared = f.shared; S.sharedVersion = f.version; fixup(); persist(); renderAll();
+    S.shared = f.shared; S.sharedVersion = f.version; applySharedConfig(S); fixup(); persist(); renderAll();
     setStatus('Fixed events updated (version ' + f.version + ').', true);
   } catch(e){}
 }
